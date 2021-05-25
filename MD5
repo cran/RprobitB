@@ -1,6 +1,6 @@
-ba29eabcb270f3c99ed772b0428ba3cf *DESCRIPTION
-8da08a02de5894020896d85313238a4e *NAMESPACE
-db201a785805dd94471f8d0453989afc *NEWS.md
+b43e533538abdbf2f1797bb7227b69e7 *DESCRIPTION
+c4d5c2ff2470d0ff9f804c194ff752f6 *NAMESPACE
+82914fcc4a503150bcae7912f9867943 *NEWS.md
 c8e976f392bb7b8bf630adbde0a9dc0a *R/RcppExports.R
 acf3e9ab73cbee4f796bae437d4cf62e *R/check_data.R
 ffca104d8bf931c3ee7ca89f98dcc0e9 *R/check_init.R
@@ -25,7 +25,11 @@ b55deca12c1eef143981f23e9a9a371c *R/gibbs_trace.R
 e362621d9c9c46cfd29a02a248f168a5 *R/rpb.R
 0b866735f403e3f9978225b8eccb5702 *R/simulate_data.R
 3287f156e2edf0fb8e33285791874920 *R/transform_data.R
-694c69292645c6874c5fe8cd6adc19fd *README.md
+88ba774e90a4210f4261256a054e3567 *README.md
+1e50f79d2b4fc055e618fcb341c39f04 *build/vignette.rds
+d4b32ecefab908b75a59c199af721ba6 *inst/doc/MANUAL.R
+c92ccb79e4c47716eeed44e214b766b7 *inst/doc/MANUAL.Rmd
+52522cb04221d43e75dfff28cdc4de9f *inst/doc/MANUAL.html
 6d1254dff0f73eec43f45e98d7c0b910 *man/check_data.Rd
 18cf6dfec426ef737f1c02adec112cae *man/check_init.Rd
 729a19d22bb47419339cb242e63970da *man/check_lcus.Rd
@@ -60,3 +64,5 @@ dbdaba81e1261339ccda65606b495c56 *man/update_timer.Rd
 61059660eb073d93e00e8ee054237071 *src/Makevars.win
 2b4fcecfdf0a3681631037670249e9f0 *src/RcppExports.cpp
 e0fc4cfed49a79c8924fba54d4a5c307 *src/loop.cpp
+c92ccb79e4c47716eeed44e214b766b7 *vignettes/MANUAL.Rmd
+d722905aa77bc58f7adc1003739261ed *vignettes/ref.bib
