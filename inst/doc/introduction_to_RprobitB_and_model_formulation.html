@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Lennart Oelschläger" />
+
+<meta name="date" content="2021-11-12" />
+
+<title>Introduction to RprobitB and model formulation</title>
+
+<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+
+
+
+<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to RprobitB and model formulation</h1>
+<h4 class="author">Lennart Oelschläger</h4>
+<h4 class="date">2021-11-12</h4>
+
+
+
+<p>Welcome to <strong>RprobitB</strong>! This vignette introduces the R package and defines the underlying model.</p>
+<div id="introdution" class="section level2">
+<h2>Introdution</h2>
+<p>With <strong>RprobitB</strong><a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> you can</p>
+<ol style="list-style-type: decimal">
+<li><p>analyze choices made by deciders among a discrete set of alternatives,</p></li>
+<li><p>estimate <a href="#levels-of-model-complexity">(latent class) (mixed) (multinomial) probit models</a> in a Bayesian framework,</p></li>
+<li><p>model heterogeneity by approximating any underlying mixing distributions through a mixture of normal distributions,</p></li>
+<li><p>identify latent classes of decision makers.</p></li>
+</ol>
+<p>Run <code>install.packages(&quot;RprobitB&quot;)</code> in your R console to install the latest version of <strong>RprobitB</strong>.</p>
+</div>
+<div id="levels-of-model-complexity" class="section level2">
+<h2>Levels of model complexity</h2>
+<p>Why the notation <strong>(latent class) (mixed) (multinomial) probit model</strong>? Because <strong>RprobitB</strong> can fit probit models of increasing complexity:</p>
+<ul>
+<li><p>Most basic, modelling the choice between two alternatives (the <strong>probit model</strong>).</p></li>
+<li><p>Considering more than two alternatives leads to the <strong>multinomial probit model</strong>.</p></li>
+<li><p>If we incorporate random effects, the model gets the prefix <em>mixed</em>.</p></li>
+<li><p>The most general model is the <strong>latent class mixed multinomial probit model</strong>, which approximates the mixing distribution through a mixiture of normal distributions.</p></li>
+</ul>
+</div>
+<div id="outline-of-the-vignettes" class="section level2">
+<h2>Outline of the vignettes</h2>
+<ol style="list-style-type: decimal">
+<li><p><a href="#the-model">How is the model defined?</a></p></li>
+<li><p><a href="data_management.html">How to prepare or simulate choice data?</a></p></li>
+<li><p><a href="model_fitting.html">How to fit a model?</a></p></li>
+</ol>
+</div>
+<div id="the-model" class="section level2">
+<h2>The model</h2>
+<p>Assume that we observe the choices of <span class="math inline">\(N\)</span> decision makers which decide between <span class="math inline">\(J\)</span> alternatives at each of <span class="math inline">\(T\)</span> choice occasions.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> Specific to each decision maker, alternative and choice occasion, we furthermore observe <span class="math inline">\(P_f+P_r\)</span> choice attributes that we use to explain the choices. The first <span class="math inline">\(P_f\)</span> attributes are connected to fixed coefficients, the other <span class="math inline">\(P_r\)</span> attributes to random coefficients following a joint distribution mixed across decision makers.</p>
+<p>Person <span class="math inline">\(n\)</span>’s utility <span class="math inline">\(\tilde{U}_{ntj}\)</span> for alternative <span class="math inline">\(j\)</span> at choice occasion <span class="math inline">\(t\)</span> is modeled as <span class="math display">\[\begin{equation}
+\tilde{U}_{ntj} = \tilde{W}_{ntj}&#39;\alpha + \tilde{X}_{ntj}&#39;\beta_n + \tilde{\epsilon}_{ntj}
+\end{equation}\]</span></p>
+<p>for <span class="math inline">\(n=1,\dots,N\)</span>, <span class="math inline">\(t=1,\dots,T\)</span> and <span class="math inline">\(j=1,\dots,J\)</span>, where</p>
+<ul>
+<li><p><span class="math inline">\(\tilde{W}_{ntj}\)</span> is a vector of <span class="math inline">\(P_f\)</span> characteristics of <span class="math inline">\(j\)</span> as faced by <span class="math inline">\(n\)</span> at <span class="math inline">\(t\)</span> corresponding to the fixed coefficient vector <span class="math inline">\(\alpha \in {\mathbb R}^{P_f}\)</span>,</p></li>
+<li><p><span class="math inline">\(\tilde{X}_{ntj}\)</span> is a vector of <span class="math inline">\(P_r\)</span> characteristics of <span class="math inline">\(j\)</span> as faced by <span class="math inline">\(n\)</span> at <span class="math inline">\(t\)</span> corresponding to the random, decision maker-specific coefficient vector <span class="math inline">\(\beta_n \in {\mathbb R}^{P_r}\)</span>, where <span class="math inline">\(\beta_n\)</span> is distributed according to some <span class="math inline">\(P_r\)</span>-variate distribution <span class="math inline">\(g_{P_r}\)</span>,</p></li>
+<li><p>and <span class="math inline">\((\tilde{\epsilon}_{nt:}) = (\tilde{\epsilon}_{nt1},\dots,\tilde{\epsilon}_{ntJ})&#39; \sim \text{MVN}_{J} (0,\tilde{\Sigma})\)</span> is the models’ error term vector for <span class="math inline">\(n\)</span> at <span class="math inline">\(t\)</span>, which in the probit model is assumed to be multivariate normally distributed with zero mean and covariance matrix <span class="math inline">\(\tilde{\Sigma}\)</span>.</p></li>
+</ul>
+<div id="normalization" class="section level3">
+<h3>Normalization</h3>
+<p>As is well known, any utility model needs to be normalized with respect to level and scale in order to be identified. Therefore, we consider the transformed model</p>
+<p><span class="math display">\[\begin{equation}
+U_{ntj} = W_{ntj}&#39;\alpha + X_{ntj}&#39;\beta_n + \epsilon_{ntj},
+\end{equation}\]</span></p>
+<p><span class="math inline">\(n=1,\dots,N\)</span>, <span class="math inline">\(t=1,\dots,T\)</span> and <span class="math inline">\(j=1,\dots,J-1\)</span>, where (choosing <span class="math inline">\(J\)</span> as the reference alternative) <span class="math inline">\(U_{ntj}=\tilde{U}_{ntj} - \tilde{U}_{ntJ}\)</span>, <span class="math inline">\(W_{ntj}=\tilde{W}_{ntj}-\tilde{W}_{ntJ}\)</span>, <span class="math inline">\(X_{ntj}=\tilde{X}_{ntj}-\tilde{X}_{ntJ}\)</span> and <span class="math inline">\(\epsilon_{ntj}=\tilde{\epsilon}_{ntj}-\tilde{\epsilon}_{ntJ}\)</span>, where <span class="math inline">\((\epsilon_{nt:}) = (\epsilon_{nt1},...,\epsilon_{nt(J-1)})&#39; \sim \text{MVN}_{J-1} (0,\Sigma)\)</span> and <span class="math inline">\(\Sigma\)</span> denotes a covariance matrix with the top-left element restricted to one.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+</div>
+<div id="linking-the-latent-utility-to-the-choices" class="section level3">
+<h3>Linking the latent utility to the choices</h3>
+<p>Let <span class="math inline">\(y_{nt}=j\)</span> denote the event that decision maker <span class="math inline">\(n\)</span> chooses alternative <span class="math inline">\(j\)</span> at choice occasion <span class="math inline">\(t\)</span>. Assuming utility maximizing behavior of the decision makers, the decisions are linked to the utilities via <span class="math display">\[\begin{equation}
+y_{nt} = \sum_{j=1}^{J-1} j\cdot 1 \left (U_{ntj}=\max_i U_{nti}&gt;0 \right) + J \cdot 1\left (U_{ntj}&lt;0 ~\text{for all}~j\right), 
+\end{equation}\]</span> where <span class="math inline">\(1(A)\)</span> equals <span class="math inline">\(1\)</span> if condition <span class="math inline">\(A\)</span> is true and <span class="math inline">\(0\)</span> else.</p>
+</div>
+<div id="approximating-the-mixing-distribution" class="section level3">
+<h3>Approximating the mixing distribution</h3>
+<p>We approximate the mixing distribution <span class="math inline">\(g_{P_r}\)</span> for the random coefficients<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a> <span class="math inline">\(\beta=(\beta_n)_{n}\)</span> by a mixture of <span class="math inline">\(P_r\)</span>-variate normal densities <span class="math inline">\(\phi_{P_r}\)</span> with mean vectors <span class="math inline">\(b=(b_c)_{c}\)</span> and covariance matrices <span class="math inline">\(\Omega=(\Omega_c)_{c}\)</span> using <span class="math inline">\(C\)</span> components, i.e. <span class="math display">\[\begin{equation}
+\beta_n\mid b,\Omega \sim \sum_{c=1}^{C} s_c \phi_{P_r} (\cdot \mid b_c,\Omega_c),
+\end{equation}\]</span> where <span class="math inline">\((s_c)_{c}\)</span> are weights satisfying <span class="math inline">\(0 &lt; s_c\leq 1\)</span> for <span class="math inline">\(c=1,\dots,C\)</span> and <span class="math inline">\(\sum_c s_c=1\)</span>.</p>
+</div>
+<div id="interpreting-the-latent-classes" class="section level3">
+<h3>Interpreting the latent classes</h3>
+<p>One interpretation of the latent class model is obtained by introducing variables <span class="math inline">\(z=(z_n)_n\)</span> allocating each decision maker <span class="math inline">\(n\)</span> to class <span class="math inline">\(c\)</span> with probability <span class="math inline">\(s_c\)</span>, i.e. <span class="math display">\[\begin{equation}
+\text{Prob}(z_n=c)=s_c \quad \text{and} \quad \beta_n \mid z,b,\Omega \sim \phi_{P_r}(\cdot \mid b_{z_n},\Omega_{z_n}).
+\end{equation}\]</span></p>
+<p>We call this model the <strong>latent class mixed multinomial probit</strong> model.<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+</div>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>The package name <strong>RprobitB</strong> is a portmanteau, combining <strong>R</strong> (the programming language), <strong>probit</strong> (the model class) and <strong>B</strong> (for Bayes, the estimation method).<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>For notational simplicity, the number of choice occasions <span class="math inline">\(T\)</span> is assumed to be the same for each decision maker here. However, <strong>RprobitB</strong> allows for a different number of choice occasions for each decision maker.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p><strong>RprobitB</strong> provides an alternative to fixing an error term variance in order to normalize with respect to scale by fixing an element of <span class="math inline">\(\alpha\)</span>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>We use the abbreviation <span class="math inline">\((\beta_n)_n\)</span> as a shortcut to <span class="math inline">\((\beta_n)_{n =1,...,N}\)</span> the collection of vectors <span class="math inline">\(\beta_n,n=1,...,N\)</span>.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Note that the model collapses to the (normally) mixed multinomial probit model if <span class="math inline">\(P_r&gt;0\)</span> and <span class="math inline">\(C=1\)</span>, to the multinomial probit model if <span class="math inline">\(P_r=0\)</span> and to the basic probit model if additionally <span class="math inline">\(J=2\)</span>.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
