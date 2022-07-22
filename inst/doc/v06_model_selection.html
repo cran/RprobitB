@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Model selection</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Model selection</h1>
+
+
+
+<p>The task of model selection targets the question: If there are
+several competing models, how do I choose the most appropriate one? This
+vignette<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>
+outlines the model selection tools implemented in {RprobitB}.</p>
+<p>For illustration, we revisit the probit model of travelers deciding
+between two fictional train route alternatives from <a href="https://loelschlaeger.de/RprobitB/articles/v03_model_fitting.html">the
+vignette on model fitting</a>:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>form <span class="ot">&lt;-</span> choice <span class="sc">~</span> price <span class="sc">+</span> time <span class="sc">+</span> change <span class="sc">+</span> comfort <span class="sc">|</span> <span class="dv">0</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(<span class="at">form =</span> form, <span class="at">choice_data =</span> Train)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">fit_model</span>(</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">data =</span> data,</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">scale =</span> <span class="st">&quot;price := -1&quot;</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">R =</span> <span class="dv">1000</span>, <span class="at">B =</span> <span class="dv">500</span>, <span class="at">Q =</span> <span class="dv">10</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<p>As a competing model, we consider explaining the choices only by the
+alternative’s price, i.e. the probit model with the formula
+<code>choice ~ price | 0</code>:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>model_train_sparse <span class="ot">&lt;-</span> <span class="fu">update</span>(model_train, <span class="at">form =</span> choice <span class="sc">~</span> price <span class="sc">|</span> <span class="dv">0</span>)</span></code></pre></div>
+<p>The <code>update()</code> function helps to estimate a new version of
+<code>model_train</code> with new specifications. Here, only
+<code>form</code> has been changed.</p>
+<div id="the-model_selection-function" class="section level2">
+<h2>The <code>model_selection()</code> function</h2>
+<p>{RprobitB} provides the convenience function
+<code>model_selection()</code>, which takes an arbitrary number of
+<code>RprobitB_fit</code> objects and returns a matrix of model
+selection criteria:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_selection</span>(model_train, model_train_sparse)</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;      model_train model_train_sparse</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; npar           4                  1</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; LL      -1727.74           -1865.89</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; AIC      3463.49            3733.77</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; BIC      3487.42            3739.76</span></span></code></pre></div>
+<p>Specifying <code>criteria</code> is optional. Per default,
+<code>criteria = c(&quot;npar&quot;, &quot;LL&quot;, &quot;AIC&quot;, &quot;BIC&quot;)</code>.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> The available model
+selection criteria are explained in the following.</p>
+<div id="npar" class="section level3">
+<h3><code>npar</code></h3>
+<p><code>&quot;npar&quot;</code> yields the number of model parameters, which is
+computed by the <code>npar()</code> method:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">npar</span>(model_train, model_train_sparse)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 4 1</span></span></code></pre></div>
+<p>Here, <code>model_train</code> has 4 parameters (a coefficient for
+price, time, change, and comfort, respectively), while
+<code>model_train_sparse</code> has only a single price coefficient.</p>
+</div>
+<div id="ll" class="section level3">
+<h3><code>LL</code></h3>
+<p>If <code>&quot;LL&quot;</code> is included in <code>criteria</code>,
+<code>model_selection()</code> returns the model’s log-likelihood
+values. They can also be directly accessed via the <code>logLik()</code>
+method:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(model_train)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -1727.744</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(model_train_sparse)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -1865.887</span></span></code></pre></div>
+</div>
+<div id="aic" class="section level3">
+<h3><code>AIC</code></h3>
+<p>Including <code>&quot;AIC&quot;</code> yields the Akaike’s Information
+Criterion <span class="citation">(<a href="#ref-Akaike:1974" role="doc-biblioref">Akaike 1974</a>)</span>, which is computed as <span class="math display">\[-2 \cdot \text{LL} + k \cdot
+\text{npar},\]</span> where <span class="math inline">\(\text{LL}\)</span> is the <a href="#ll">model’s
+log-likelihood value</a>, <span class="math inline">\(k\)</span> is the
+penalty per parameter with <span class="math inline">\(k = 2\)</span>
+per default for the classical AIC, and <span class="math inline">\(\text{npar}\)</span> is the number of parameters
+in the fitted model.</p>
+<p>Alternatively, the <code>AIC()</code> method also returns the AIC
+values:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(model_train, model_train_sparse, <span class="at">k =</span> <span class="dv">2</span>)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3463.488 3733.773</span></span></code></pre></div>
+<p>The AIC quantifies the trade-off between over- and under-fitting,
+where smaller values are preferred. Here, the increase in goodness of
+fit justifies the additional 3 parameters of
+<code>model_train</code>.</p>
+</div>
+<div id="bic" class="section level3">
+<h3><code>BIC</code></h3>
+<p>Similar to the AIC, <code>&quot;BIC&quot;</code> yields the Bayesian
+Information Criterion <span class="citation">(<a href="#ref-Schwarz:1978" role="doc-biblioref">Schwarz 1978</a>)</span>,
+which is defined as <span class="math display">\[-2 \cdot \text{LL} +
+\log{(\text{nobs})} \cdot \text{npar},\]</span> where <span class="math inline">\(\text{LL}\)</span> is the <a href="#ll">model’s
+log-likelihood value</a>, <span class="math inline">\(\text{nobs}\)</span> is the number of data points
+(which can be accessed via the <code>nobs()</code> method), and <span class="math inline">\(\text{npar}\)</span> is the <a href="#npar">number
+of parameters in the fitted model</a>. The interpretation is analogue to
+AIC.</p>
+<p>{RprobitB} also provided a method for the <code>BIC</code> value:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">BIC</span>(model_train, model_train_sparse)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3487.418 3739.756</span></span></code></pre></div>
+</div>
+<div id="waic-with-sewaic-and-pwaic" class="section level3">
+<h3><code>WAIC</code> (with <code>se(WAIC)</code> and
+<code>pWAIC</code>)</h3>
+<p>WAIC is short for Widely Applicable (or Watanabe-Akaike) Information
+Criterion <span class="citation">(<a href="#ref-Watanabe:2010" role="doc-biblioref">Watanabe and Opper 2010</a>)</span>. As for AIC and
+BIC, the smaller the WAIC value the better the model. Including
+<code>&quot;WAIC&quot;</code> in <code>criteria</code> yields the WAIC value, its
+standard error <code>se(WAIC)</code>, and the effective number of
+parameters <code>pWAIC</code>, see below.</p>
+<p>The WAIC is defined as</p>
+<p><span class="math display">\[-2  \cdot \text{lppd} + 2\cdot
+p_\text{WAIC},\]</span></p>
+<p>where <span class="math inline">\(\text{lppd}\)</span> stands for log
+pointwise predictive density and <span class="math inline">\(p_\text{WAIC}\)</span> is a penalty term
+proportional to the variance in the posterior distribution that is
+sometimes called effective number of parameters, see <span class="citation">McElreath (<a href="#ref-McElreath:2016" role="doc-biblioref">2020</a>)</span> p. 220 for a reference.</p>
+<p>The <span class="math inline">\(\text{lppd}\)</span> is approximated
+as follows. Let <span class="math display">\[p_{si} = \Pr(y_i\mid
+\theta_s)\]</span> be the probability of observation <span class="math inline">\(y_i\)</span> (here the single choices) given the
+<span class="math inline">\(s\)</span>-th set <span class="math inline">\(\theta_s\)</span> of parameter samples from the
+posterior. Then</p>
+<p><span class="math display">\[\text{lppd} = \sum_i \log \left( S^{-1}
+\sum_s p_{si} \right).\]</span> The penalty term is computed as the sum
+over the variances in log-probability for each observation: <span class="math display">\[p_\text{WAIC} = \sum_i \mathbb{V}_{\theta}  \log
+(p_{si}) . \]</span> The <span class="math inline">\(\text{WAIC}\)</span> has a standard error of <span class="math display">\[\sqrt{n \cdot \mathbb{V}_i \left[-2
+\left(\text{lppd} - \mathbb{V}_{\theta}  \log
+(p_{si})  \right)\right]},\]</span> where <span class="math inline">\(n\)</span> is the number of choices.</p>
+<p>Before computing the WAIC of an object, the probabilities <span class="math inline">\(p_{si}\)</span> must be computed via the
+<code>compute_p_si()</code> function: <a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">compute_p_si</span>(model_train)</span></code></pre></div>
+<p>Afterwards, the WAIC can be accessed as follows:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">WAIC</span>(model_train)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">WAIC</span>(model_train_sparse)</span></code></pre></div>
+</div>
+<div id="mmll" class="section level3">
+<h3><code>MMLL</code></h3>
+<p><code>&quot;MMLL&quot;</code> in <code>criteria</code> stands for marginal
+model log-likelihood. The model’s marginal likelihood <span class="math inline">\(\Pr(y\mid M)\)</span> for a model <span class="math inline">\(M\)</span> and data <span class="math inline">\(y\)</span> is required for the computation of
+Bayes factors, see below. In general, the term has no closed form and
+must be approximated numerically.</p>
+<p>{RprobitB} uses the posterior Gibbs samples derived from the
+<code>mcmc()</code> function to approximate the model’s marginal
+likelihood via the posterior harmonic mean estimator <span class="citation">(<a href="#ref-Newton:1994" role="doc-biblioref">Newton
+and Raftery 1994</a>)</span>: Let <span class="math inline">\(S\)</span>
+denote the number of available posterior samples <span class="math inline">\(\theta_1,\dots,\theta_S\)</span>. Then, <span class="math display">\[\Pr(y\mid M) = \left(\mathbb{E}_\text{posterior}
+1/\Pr(y\mid \theta,M) \right)^{-1} \approx \left( \frac{1}{S} \sum_s
+1/\Pr(y\mid \theta_s,M) \right) ^{-1} = \tilde{\Pr}(y\mid
+M).\]</span></p>
+<p>By the law of large numbers, <span class="math inline">\(\tilde{\Pr}(y\mid M) \to \Pr(y\mid M)\)</span>
+almost surely as <span class="math inline">\(S \to \infty\)</span>.</p>
+<p>As for the <a href="#waic">WAIC</a>, computing the MMLL relies on the
+probabilities <span class="math inline">\(p_{si} = \Pr(y_i\mid
+\theta_s)\)</span>, which must first be computed via the
+<code>compute_p_si()</code> function. Afterwards, the <code>mml()</code>
+function can be called with an <code>RprobitB_fit</code> object as
+input. The function returns the <code>RprobitB_fit</code> object, where
+the marginal likelihood value is saved as the entry <code>&quot;mml&quot;</code>
+and the marginal log-likelihood value as the attribute
+<code>&quot;mmll&quot;</code>:<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">mml</span>(model_train)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>model_train<span class="sc">$</span>mml</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="fu">attr</span>(model_train<span class="sc">$</span>mml, <span class="st">&quot;mmll&quot;</span>)</span></code></pre></div>
+<p>There are two options for improving the approximation: As for the
+WAIC, you can use more posterior samples. Alternatively, you can combine
+the posterior harmonic mean estimate with the prior arithmetic mean
+estimator <span class="citation">(<a href="#ref-Hammersley:1964" role="doc-biblioref">Hammersley and Handscomb 1964</a>)</span>: For this
+approach, <span class="math inline">\(S\)</span> samples <span class="math inline">\(\theta_1,\dots,\theta_S\)</span> are drawn from
+the model’s prior distribution. Then,</p>
+<p><span class="math display">\[\Pr(y\mid M) = \mathbb{E}_\text{prior}
+\Pr(y\mid \theta,M) \approx \frac{1}{S} \sum_s \Pr(y\mid \theta_s,M) =
+\tilde{\Pr}(y\mid M).\]</span></p>
+<p>Again, it hols by the law of large numbers, that <span class="math inline">\(\tilde{\Pr}(y\mid M) \to \Pr(y\mid M)\)</span>
+almost surely as <span class="math inline">\(S \to \infty\)</span>. The
+final approximation of the model’s marginal likelihood than is a
+weighted sum of the posterior harmonic mean estimate and the prior
+arithmetic mean estimate, where the weights are determined by the sample
+sizes.</p>
+<p>To use the prior arithmetic mean estimator, call the
+<code>mml()</code> function with a specification of the number of prior
+draws <code>S</code> and set <code>recompute = TRUE</code>:<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">mml</span>(model_train, <span class="at">S =</span> <span class="dv">1000</span>, <span class="at">recompute =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>Note that the prior arithmetic mean estimator works well if the prior
+and posterior distribution have a similar shape and strong overlap, as
+<span class="citation">Gronau et al. (<a href="#ref-Gronau:2017" role="doc-biblioref">2017</a>)</span> points out. Otherwise, most of the
+sampled prior values result in a likelihood value close to zero, thereby
+contributing only marginally to the approximation. In this case, a very
+large number <code>S</code> of prior samples is required.</p>
+</div>
+<div id="bf" class="section level3">
+<h3><code>BF</code></h3>
+<p>The Bayes factor is an index of relative posterior model plausibility
+of one model over another <span class="citation">(<a href="#ref-Marin:2014" role="doc-biblioref">Marin and Robert
+2014</a>)</span>. Given data <span class="math inline">\(\texttt{y}\)</span> and two models <span class="math inline">\(\texttt{mod0}\)</span> and <span class="math inline">\(\texttt{mod1}\)</span>, it is defined as</p>
+<p><span class="math display">\[
+BF(\texttt{mod0},\texttt{mod1}) = \frac{\Pr(\texttt{mod0} \mid
+\texttt{y})}{\Pr(\texttt{mod1} \mid \texttt{y})} = \frac{\Pr(\texttt{y}
+\mid \texttt{mod0} )}{\Pr(\texttt{y} \mid \texttt{mod1})} /
+\frac{\Pr(\texttt{mod0})}{\Pr(\texttt{mod1})}.
+\]</span></p>
+<p>The ratio <span class="math inline">\(\Pr(\texttt{mod0}) /
+\Pr(\texttt{mod1})\)</span> expresses the factor by which <span class="math inline">\(\texttt{mod0}\)</span> a priori is assumed to be
+the correct model. Per default, {RprobitB} sets <span class="math inline">\(\Pr(\texttt{mod0}) = \Pr(\texttt{mod1}) =
+0.5\)</span>. The front part <span class="math inline">\(\Pr(\texttt{y}
+\mid \texttt{mod0} ) / \Pr(\texttt{y} \mid \texttt{mod1})\)</span> is
+the ratio of the <a href="#mmll">marginal model likelihoods</a>. A value
+of <span class="math inline">\(BF(\texttt{mod0},\texttt{mod1}) &gt;
+1\)</span> means that the model <span class="math inline">\(\texttt{mod0}\)</span> is more strongly supported
+by the data under consideration than <span class="math inline">\(\texttt{mod1}\)</span>.</p>
+<p>Adding <code>&quot;BF&quot;</code> to the <code>criteria</code> argument of
+<code>model_selection</code> yields the Bayes factors. We find a
+decisive evidence <span class="citation">(<a href="#ref-Jeffreys:1998" role="doc-biblioref">Jeffreys 1998</a>)</span> in favor of
+<code>model_train</code>.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">model_selection</span>(model_train, model_train_sparse, <span class="at">criteria =</span> <span class="fu">c</span>(<span class="st">&quot;BF&quot;</span>))</span></code></pre></div>
+</div>
+<div id="pred_acc" class="section level3">
+<h3><code>pred_acc</code></h3>
+<p>Finally, adding <code>&quot;pred_acc&quot;</code> to the <code>criteria</code>
+argument for the <code>model_selection()</code> function returns the
+share of correctly predicted choices. From the output of
+<code>model_selection()</code> above (or alternatively the one in the
+following) we deduce that <code>model_train</code> correctly predicts
+about 6% of the choices more than <code>model_train_sparse</code>:<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pred_acc</span>(model_train, model_train_sparse)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 0.6971663 0.6340048</span></span></code></pre></div>
+</div>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Akaike:1974" class="csl-entry">
+Akaike, H. 1974. <span>“A New Look at the Statistical Model
+Identification.”</span> <em>IEEE Transactions on Automatic Control</em>
+19. <a href="https://doi.org/10.1109/TAC.1974.1100705">https://doi.org/10.1109/TAC.1974.1100705</a>.
+</div>
+<div id="ref-Gronau:2017" class="csl-entry">
+Gronau, Q. F., A. Sarafoglou, D. Matzke, A. Ly, U. Boehm, M. Marsman, D.
+S. Leslie, J. J. Forster, E. Wagenmakers, and H. Steingroever. 2017.
+<span>“A Tutorial on Bridge Sampling.”</span> <em>Journal of
+Mathematical Psychology</em> 81. <a href="https://doi.org/10.1016/j.jmp.2017.09.005">https://doi.org/10.1016/j.jmp.2017.09.005</a>.
+</div>
+<div id="ref-Hammersley:1964" class="csl-entry">
+Hammersley, J. M., and D. C. Handscomb. 1964. <span>“General Principles
+of the Monte Carlo Method.”</span> <em>Springer Verlag</em>. <a href="https://doi.org/10.1007/978-94-009-5819-7_5">https://doi.org/10.1007/978-94-009-5819-7_5</a>.
+</div>
+<div id="ref-Jeffreys:1998" class="csl-entry">
+Jeffreys, Harold. 1998. <em>The Theory of Probability</em>. OUP Oxford.
+</div>
+<div id="ref-Marin:2014" class="csl-entry">
+Marin, J., and C. Robert. 2014. <em><span class="nocase">Bayesian
+Essentials with R</span></em>. Springer Verlag. <a href="https://doi.org/10.1007/978-1-4614-8687-9">https://doi.org/10.1007/978-1-4614-8687-9</a>.
+</div>
+<div id="ref-McElreath:2016" class="csl-entry">
+McElreath, R. 2020. <em>Statistical Rethinking: A Bayesian Course with
+Examples in r and Stan</em>. Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429029608">https://doi.org/10.1201/9780429029608</a>.
+</div>
+<div id="ref-Newton:1994" class="csl-entry">
+Newton, M. A., and A. E. Raftery. 1994. <span>“Approximate Bayesian
+Inference with the Weighted Likelihood Bootstrap.”</span> <em>Journal of
+the Royal Statistical Society: Series B (Methodological)</em> 56 (1).
+</div>
+<div id="ref-Schwarz:1978" class="csl-entry">
+Schwarz, G. 1978. <span>“Estimating the Dimension of a Model.”</span>
+<em>The Annals of Statistics</em> 6.
+</div>
+<div id="ref-Watanabe:2010" class="csl-entry">
+Watanabe, S., and M. Opper. 2010. <span>“Asymptotic Equivalence of Bayes
+Cross Validation and Widely Applicable Information Criterion in Singular
+Learning Theory.”</span> <em>Journal of Machine Learning Research</em>
+11 (12).
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>This vignette is built using R 4.2.1 with the {RprobitB}
+1.1.0 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>To show the model formulas in the output of
+<code>model_selection()</code>, add the argument
+<code>add_form = TRUE</code>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>The log-likelihood values are per default computed at
+the point estimates derived from the Gibbs sample means.
+<code>logLik()</code> has the argument <code>par_set</code>, where
+alternative statistics for the point estimate can be specified.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>This computation has been outsourced because it is very
+time consuming. For example, the computation for
+<code>model_train</code> took about 5 minutes. To decrease the
+computation time, the function offers parallelization via specifying the
+number <code>ncores</code> of parallel CPU cores.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Note that the marginal likelihood value is very small.
+The given representation is required so that the value is not rounded to
+0 by the computer.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>The <code>mml()</code> function offers parallelization
+via specifying the number <code>ncores</code> of parallel CPU cores.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p>See the vignette on choice prediction for more nuanced
+performance comparison in terms of sensitivity and specificity.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

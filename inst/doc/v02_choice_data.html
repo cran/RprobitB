@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Choice data</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+
+
+<style type="text/css">
+  code {
+    white-space: pre;
+  }
+  .sourceCode {
+    overflow: visible;
+  }
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    for (var j = 0; j < rules.length; j++) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+/* for pandoc --citeproc since 2.11 */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Choice data</h1>
+
+
+
+<p>No choice model without choice data, so this vignette<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a> provides a reference
+for data management in {RprobitB}. We use the Train data set from the
+{mlogit} package <span class="citation">(<a href="#ref-Croissant:2020" role="doc-biblioref">Croissant 2020</a>)</span> for illustration.</p>
+<div id="requirements-to-choice-data" class="section level2">
+<h2>Requirements to choice data</h2>
+<p>{RprobitB} helps in modeling the choice of individual deciders of one
+alternative from a finite set of choice alternatives. This choice set
+has to fulfill three properties <span class="citation">(<a href="#ref-Train:2009" role="doc-biblioref">Train 2009</a>)</span>:
+Choices need to be</p>
+<ol style="list-style-type: decimal">
+<li><p>mutually exclusive (one can choose one and only one alternative
+that are all different),</p></li>
+<li><p>exhaustive (the alternatives do not leave other options
+open),</p></li>
+<li><p>and finitely many.</p></li>
+</ol>
+<p>Every decider may take one or repeated choices (called choice
+occasions). The data set thus contains information on</p>
+<ol style="list-style-type: decimal">
+<li><p>an identifier for each decider (and optionally for each choice
+situation),</p></li>
+<li><p>the choices,</p></li>
+<li><p>alternative and decider specific covariates.</p></li>
+</ol>
+<p>Additionally, {RprobitB} asks the following formal requirements:</p>
+<ol style="list-style-type: decimal">
+<li><p>The data set <strong>must</strong> be in “wide” format, that
+means each row provides the full information for one choice occasion.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p></li>
+<li><p>It <strong>must</strong> contain a column with unique identifiers
+for each decision maker. Additionally, it <strong>can</strong> contain a
+column with identifier for each choice situation of each decider. If
+this information is missing, these identifier are generated
+automatically by the appearance of the choices in the data set.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p></li>
+<li><p>It <strong>can</strong> contain a column with the observed
+choices. Such a column is required for model fitting but not for
+prediction.</p></li>
+<li><p>It <strong>must</strong> contain columns for the values of each
+alternative specific covariate for each alternative and for each decider
+specific covariate.</p></li>
+</ol>
+<div id="example" class="section level3">
+<h3>Example</h3>
+<p>The Train data set contains 2929 stated choices by 235 Dutch
+individuals deciding between two virtual train trip options based on the
+price, the travel time, the level of comfort, and the number of changes.
+It fulfills the above requirements: Each row represents one choice
+occasion, the columns <code>id</code> and <code>choiceid</code> identify
+the deciders and the choice occasions, respectively. The column
+<code>choice</code> gives the observed choices. Four
+alternative-specific covariates are available, namely
+<code>price</code>, <code>time</code>, <code>change</code>, and
+<code>comfort</code>. There values are given for each alternative.<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Train&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mlogit&quot;</span>)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">str</span>(Train)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &#39;data.frame&#39;:    2929 obs. of  11 variables:</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ id       : int  1 1 1 1 1 1 1 1 1 1 ...</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ choiceid : int  1 2 3 4 5 6 7 8 9 10 ...</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ choice   : Factor w/ 2 levels &quot;A&quot;,&quot;B&quot;: 1 1 1 2 2 2 2 2 1 1 ...</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ price_A  : num  2400 2400 2400 4000 2400 4000 2400 2400 4000 2400 ...</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ time_A   : num  150 150 115 130 150 115 150 115 115 150 ...</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ change_A : num  0 0 0 0 0 0 0 0 0 0 ...</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ comfort_A: num  1 1 1 1 1 0 1 1 0 1 ...</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ price_B  : num  4000 3200 4000 3200 3200 2400 3200 3200 3200 4000 ...</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ time_B   : num  150 130 115 150 150 130 115 150 130 115 ...</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ change_B : num  0 0 0 0 0 0 0 0 0 0 ...</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;  $ comfort_B: num  1 1 0 0 0 0 1 0 1 0 ...</span></span></code></pre></div>
+</div>
+</div>
+<div id="the-model-formula" class="section level2">
+<h2>The model formula</h2>
+<p>We have to inform {RprobitB} about the covariates we want to include
+in our model via specifying a <code>formula</code> object. Say we want
+to model the utility <span class="math inline">\(U_{n,t,j}\)</span> of
+decider <span class="math inline">\(n\)</span> at choice occasion <span class="math inline">\(t\)</span> for alternative <span class="math inline">\(j\)</span> via the linear equation</p>
+<p><span class="math display">\[U_{n,t,j} = A_{n,t,j} \beta_1 + B_{n,t}
+\beta_{2,j} + C_{n,t,j} \beta_{3,j} + \epsilon_{n,tj}.\]</span> Here,
+<span class="math inline">\(A\)</span> and <span class="math inline">\(C\)</span> are alternative and choice situation
+specific covariates, whereas <span class="math inline">\(B\)</span> is
+choice situation specific. The coefficient <span class="math inline">\(\beta_1\)</span> is generic (i.e. the same for
+each alternative), whereas <span class="math inline">\(\beta_{2,j}\)</span> and <span class="math inline">\(\beta_{3,j}\)</span> are alternative specific.</p>
+<p>To represent this structure, the <code>formula</code> object is of
+the form (analogously to {mlogit}) <code>choice ~ A | B | C</code>,
+where</p>
+<ul>
+<li><p><code>choice</code> is the dependent variable (the discrete
+choice we aim to explain),</p></li>
+<li><p><code>A</code> are alternative and choice situation specific
+covariates with a generic coefficient (we call them covariates of type
+1),</p></li>
+<li><p><code>B</code> are choice situation specific covariates with
+alternative specific coefficients<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a> (we call them covariates of type
+2),</p></li>
+<li><p>and <code>C</code> are alternative and choice situation specific
+covariates with alternative specific coefficients (we call them
+covariates of type 3).</p></li>
+</ul>
+<p>Specifying a <code>formula</code> object for {RprobitB} must be
+consistent with the following rules:</p>
+<ul>
+<li><p>By default, alternative specific constants (ASCs)<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a> are added to the
+model. They can be removed by adding <code>+ 0</code> in the second
+spot, e.g. <code>choice ~ A | B + 0 | C</code>.</p></li>
+<li><p>To exclude covariates of the backmost categories, use either
+<code>0</code>, e.g. <code>choice ~ A | B | 0</code> or just leave this
+part out and write <code>choice ~ A | B</code>. However, to exclude
+covariates of front categories, we have to use <code>0</code>,
+e.g. <code>choice ~ 0 | B</code>.</p></li>
+<li><p>To include more than one covariate of the same category, use
+<code>+</code>, e.g. <code>choice ~ A1 + A2 | B</code>.</p></li>
+<li><p>If we don’t want to include any covariates of the second category
+but we want to estimate alternative specific constants, add
+<code>1</code> in the second spot, e.g. <code>choice ~ A | 1</code>. The
+expression <code>choice ~ A | 0</code> is interpreted as no covariates
+of the second category and no alternative specific constants.</p></li>
+</ul>
+<p>To impose random effects for specific variables, we need to define a
+character vector <code>re</code> with the corresponding variable names.
+To have random effects for the alternative specific constants, include
+<code>&quot;ASC&quot;</code> in <code>re</code>.</p>
+<div id="example-1" class="section level3">
+<h3>Example</h3>
+<p>We specify a model formula for the Train data set. Say we want to
+include all the covariates <code>price</code>, <code>time</code>,
+<code>comfort</code>, and <code>change</code>, which are all alternative
+specific (that is, they contain a potentially different value for each
+alternative, such as different prices for A and B), so either of type 1
+or type 3. The difference between type 1 and type 3 is that in the
+former case, we would estimate a generic coefficient (i.e. a coefficient
+that is constant across alternatives), whereas in the latter case, we
+would estimate alternative specific coefficients. Deciding between type
+1 and type 3 for these covariates belongs into the topic of model
+selection, for which we provide a separate vignette. For now, we go with
+type 1 for all covariates and remove ASCs:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>form <span class="ot">&lt;-</span> choice <span class="sc">~</span> price <span class="sc">+</span> time <span class="sc">+</span> comfort <span class="sc">+</span> change <span class="sc">|</span> <span class="dv">0</span></span></code></pre></div>
+<p>Additionally, we specify random effects for <code>price</code> and
+<code>time</code> (because we would typically expect heterogeneity
+here):</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>re <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;price&quot;</span>,<span class="st">&quot;time&quot;</span>)</span></code></pre></div>
+</div>
+</div>
+<div id="the-prepare_data-function" class="section level2">
+<h2>The <code>prepare_data()</code> function</h2>
+<p>Before model estimation with {RprobitB}, any empirical choice data
+set <code>choice_data</code> must pass the <code>prepare_data()</code>
+function:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(<span class="at">form =</span> form, <span class="at">choice_data =</span> choice_data)</span></code></pre></div>
+<p>The function performs compatibility checks and data transformations
+and returns an object of class <code>RprobitB_data</code> that can be
+fed into the estimation routine <code>fit_model()</code>. The following
+arguments are optional:</p>
+<ul>
+<li><p><code>re</code>: The character vector of variable names of
+<code>form</code> with random effects. <code>re = NULL</code> per
+default, i.e. no random effects.</p></li>
+<li><p><code>alternatives</code>: We may not want to consider all
+alternatives in <code>choice_data</code>. In that case, we can specify a
+character vector <code>alternatives</code> with selected names of
+alternatives. If not specified, the choice set is defined by the
+observed choices.</p></li>
+<li><p><code>id</code>: A character (single string), the name of the
+column in <code>choice_data</code> that contains a unique identifier for
+each decision maker. The default is <code>&quot;id&quot;</code>.</p></li>
+<li><p><code>idc</code>: A character, the name of the column in
+<code>choice_data</code> that contains a unique identifier for each
+choice situation given the decision maker. Per default, these identifier
+are generated by the appearance of the choices in the data set.</p></li>
+<li><p><code>standardize</code>: A character vector of variable names of
+<code>form</code> that get standardized. Covariates of type 1 or 3 have
+to be addressed by <code>&lt;covariate&gt;_&lt;alternative&gt;</code>.
+If <code>standardize = &quot;all&quot;</code>, all covariates get standardized.
+Per default, no covariate is standardized.</p></li>
+<li><p><code>impute</code>: Specifies how to handle missing entries
+(<code>NA, NaN, -Inf, Inf</code>) in <code>choice_data</code>. The
+following options are available:</p>
+<ul>
+<li><p><code>&quot;complete_cases&quot;</code>, which removes rows containing
+missing entries (the default),</p></li>
+<li><p><code>&quot;zero&quot;</code>, which replaces missing entries by
+zero,</p></li>
+<li><p><code>&quot;mean&quot;</code>, which imputes missing entries by the
+covariate mean.</p></li>
+</ul></li>
+</ul>
+<div id="example-2" class="section level3">
+<h3>Example</h3>
+<p>Let’s prepare the Train data set for estimation with our previous
+specification of <code>form</code> and <code>re</code>:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">prepare_data</span>(<span class="at">form =</span> form, <span class="at">choice_data =</span> Train, <span class="at">re =</span> re, <span class="at">id =</span> <span class="st">&quot;id&quot;</span>, <span class="at">idc =</span> <span class="st">&quot;choiceid&quot;</span>)</span></code></pre></div>
+<p>The <code>summary</code> and <code>plot</code> methods provide a
+quick data overview:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  count</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; deciders           235</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; choice occasions  5-19</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; total choices     2929</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alternatives         2</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - &#39;A&#39;             1474</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - &#39;B&#39;             1455</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="75%" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="ordered-alternatives" class="section level2">
+<h2>Ordered alternatives</h2>
+<p>The two choice alternatives from the train trip example are
+unordered. If we had asked “rate your train trip from 1 (horrible) to 7
+(great)”, then the respondents would choose from a set of ordered
+alternatives. Such ordered alternatives can by analyzed by setting
+<code>ordered = TRUE</code> in <code>prepare_data</code>. In this case,
+<code>alternatives</code> becomes a mandatory argument, where the
+alternatives must be named from worst to best.</p>
+</div>
+<div id="ranked-choices" class="section level2">
+<h2>Ranked choices</h2>
+<p>Rather than recording only the single most preferred alternative,
+some surveys ask for a full ranking of all the alternatives, which
+reveals far more about the underlying preferences. Ranked choices can by
+analyzed by setting <code>ranked = TRUE</code> in
+<code>prepare_data()</code>. The choice column of the data set must
+provide the full ranking for each choice occasion (from most preferred
+to least preferred), where the alternatives are separated by commas.</p>
+<p>The ranked probit model follows directly from the basic multivariate
+case. The only difference is that we take flexible utility differences
+such that the differenced utility vector is always negative. Thereby, we
+incorporate information of the full ranking.</p>
+</div>
+<div id="simulate-choices" class="section level2">
+<h2>Simulate choices</h2>
+<p>The <code>simulate_choices</code> function simulates discrete choice
+data from a prespecified probit model. Say we want to simulate the
+choices of <code>N</code> deciders in <code>T</code> choice occasions<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a> among
+<code>J</code> alternatives from a model formulation <code>form</code>,
+we have to call</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">simulate_choices</span>(<span class="at">form =</span> form, <span class="at">N =</span> N, <span class="at">T =</span> T, <span class="at">J =</span> J)</span></code></pre></div>
+<p>The function <code>simulate_choices()</code> has the following
+optional arguments:</p>
+<ul>
+<li><p><code>re</code>: The character vector of variable names of
+<code>form</code> with random effects.</p></li>
+<li><p><code>alternatives</code>: A character vector of length
+<code>J</code> with the names of the choice alternatives. If not
+specified, the alternatives are labeled by the first <code>J</code>
+upper-case letters of the Roman alphabet.</p></li>
+<li><p><code>covariates</code>: A named list of covariate values. Each
+element must be a vector of length equal to the number of choice
+occasions and named according to a covariate, or follow the naming
+convention for alternative specific covariates,
+i.e. <code>&lt;covariate&gt;_&lt;alternative&gt;</code>. Covariates for
+which no values are specified are drawn from a standard normal
+distribution.</p></li>
+<li><p><code>standardize</code>: A character vector of variable names of
+<code>form</code> that get standardized.</p></li>
+<li><p><code>seed</code>: Set a seed for the simulation.</p></li>
+</ul>
+<p>We can specify the true parameters<a href="#fn8" class="footnote-ref" id="fnref8"><sup>8</sup></a> by adding a named list with values for</p>
+<ul>
+<li><p><code>alpha</code>, the fixed coefficient vector,</p></li>
+<li><p><code>C</code>, the number (greater or equal 1) of latent classes
+of decision makers,</p></li>
+<li><p><code>s</code>, the vector of class weights,</p></li>
+<li><p><code>b</code>, the matrix of class means as columns,</p></li>
+<li><p><code>Omega</code>, the matrix of class covariance matrices as
+columns,</p></li>
+<li><p><code>Sigma</code>, the differenced error term covariance matrix,
+or <code>Sigma_full</code>, the full error term covariance
+matrix,</p></li>
+<li><p><code>beta</code>, the matrix of the decision-maker specific
+coefficient vectors,</p></li>
+<li><p><code>z</code>, the class allocation vector,</p></li>
+<li><p><code>d</code>, the vector of logarithmic threshold increments in
+the ordered probit case.</p></li>
+</ul>
+<p>True parameters that are not specified will be set at random.</p>
+<div id="example-3" class="section level3">
+<h3>Example</h3>
+<p>For illustration, we simulate the choices of <code>N = 100</code>
+deciders at <code>T = 10</code> choice occasions between the
+alternatives <code>A</code> and <code>B</code>:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>N <span class="ot">&lt;-</span> <span class="dv">100</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>T <span class="ot">&lt;-</span> <span class="dv">10</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>alternatives <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;A&quot;</span>, <span class="st">&quot;B&quot;</span>)</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="st">&quot;B&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>form <span class="ot">&lt;-</span> choice <span class="sc">~</span> var1 <span class="sc">|</span> var2 <span class="sc">|</span> var3</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>re <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;ASC&quot;</span>, <span class="st">&quot;var2&quot;</span>)</span></code></pre></div>
+<p>{RprobitB} provides the function <code>overview_effects()</code>
+which can be used to get an overview of the effects for which parameters
+can be specified:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="fu">overview_effects</span>(<span class="at">form =</span> form, <span class="at">re =</span> re, <span class="at">alternatives =</span> alternatives, <span class="at">base =</span> base)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   effect as_value as_coef random</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1   var1     TRUE   FALSE  FALSE</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2 var3_A     TRUE    TRUE  FALSE</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 3 var3_B     TRUE    TRUE  FALSE</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 4 var2_A    FALSE    TRUE   TRUE</span></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 5  ASC_A    FALSE    TRUE   TRUE</span></span></code></pre></div>
+<p>Hence, the coefficient vector <code>alpha</code> must be of length 3,
+where the elements 1 to 3 correspond to <code>var1</code>,
+<code>var3_A</code>, and <code>var3_B</code>, respectively. The matrix
+<code>b</code> must be of dimension 2 x <code>C</code>, where (by
+default) <code>C = 1</code> and row 1 and 2 correspond to
+<code>var2_A</code> and <code>ASC_A</code>, respectively.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>data <span class="ot">&lt;-</span> <span class="fu">simulate_choices</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">form =</span> form, </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">N =</span> N, </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">T =</span> T, </span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">J =</span> <span class="dv">2</span>, </span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">re =</span> re, </span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">alternatives =</span> alternatives, </span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">1</span>,</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">true_parameter =</span> <span class="fu">list</span>(</span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">alpha =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">1</span>),</span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">b =</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="dv">2</span>,<span class="sc">-</span><span class="fl">0.5</span>), <span class="at">ncol =</span> <span class="dv">1</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(data)</span>
+<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                  count</span></span>
+<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; deciders           100</span></span>
+<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; choice occasions    10</span></span>
+<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; total choices     1000</span></span>
+<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; alternatives         2</span></span>
+<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - &#39;A&#39;              435</span></span>
+<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; - &#39;B&#39;              565</span></span></code></pre></div>
+<p>We can visualize the covariates grouped by the chosen
+alternatives:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(data, <span class="at">by_choice =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p><img src="data:image/png;base64,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" width="75%" style="display: block; margin: auto;" /></p>
+<p>What we see is consistent with our specification: Higher values of
+<code>var1_A</code> for example correspond more frequently to choice
+<code>B</code> (upper-right panel), because the coefficient of
+<code>var1</code> (the first value of <code>alpha</code>) is
+negative.</p>
+</div>
+</div>
+<div id="train-and-test-data-set" class="section level2">
+<h2>Train and test data set</h2>
+<p>The function <code>train_test()</code> can be used to split the
+output of <code>prepare_data()</code> or <code>simulate_choices()</code>
+into a train and a test subset. This is useful when evaluating the
+prediction performance of a fitted model. For example, the following
+code puts 70% of deciders from our simulated <code>data</code> into the
+train subsample and 30% of deciders in the test subsample:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">train_test</span>(data, <span class="at">test_proportion =</span> <span class="fl">0.3</span>, <span class="at">by =</span> <span class="st">&quot;N&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $train</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Simulated data of 700 choices.</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $test</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Simulated data of 300 choices.</span></span></code></pre></div>
+<p>Alternatively, the following code puts 2 randomly chosen choice
+occasions per decider from <code>data</code> into the test subsample,
+the rest goes into the train subsample:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">train_test</span>(data, <span class="at">test_number =</span> <span class="dv">2</span>, <span class="at">by =</span> <span class="st">&quot;T&quot;</span>, <span class="at">random =</span> <span class="cn">TRUE</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $train</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Simulated data of 800 choices.</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; $test</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Simulated data of 200 choices.</span></span></code></pre></div>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Croissant:2020" class="csl-entry">
+Croissant, Y. 2020. <span>“Estimation of Random Utility Models in r: The
+Mlogit Package.”</span> <em>Journal of Statistical Software</em> 95
+(11). <a href="https://doi.org/10.18637/jss.v095.i11">https://doi.org/10.18637/jss.v095.i11</a>.
+</div>
+<div id="ref-Train:2009" class="csl-entry">
+Train, K. 2009. <em>Discrete Choice Methods with Simulation</em>.
+Cambridge University Press. <a href="https://doi.org/10.1017/CBO9780511805271">https://doi.org/10.1017/CBO9780511805271</a>.
+</div>
+</div>
+</div>
+<div class="footnotes footnotes-end-of-document">
+<hr />
+<ol>
+<li id="fn1"><p>This vignette is build using R 4.2.1 with the {RprobitB}
+1.1.0 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The {tidyr} package <a href="https://tidyr.tidyverse.org/articles/pivot.html">contains
+functionality</a> that can transform a <code>data.frame</code> into this
+format.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>The choice situation identifier are irrelevant for model
+estimation because {RprobitB} does not model correlation over choice
+occasions. They are useful to identify specific choice occasions later
+on.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>For alternative specific variables, the alternative
+names must be added to the covariates via the <code>_</code>
+separator.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>Mind that not all alternative specific coefficients of
+type 2-covariates are identified. This is because the probit model is
+estimated on utility differences since the level of the utility is
+irrelevant, see the vignette on the model definition. Therefore, the
+coefficient of the last alternative of each type 2-covariate is set to
+0.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
+<li id="fn6"><p>ASCs capture the average effect on utility of all
+factors that are not included in the model. Due to identifiability, we
+cannot estimate ASCs for all the alternatives. Therefore, they are added
+for all except for the last alternative.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
+<li id="fn7"><p><code>T</code> can be either a positive number,
+representing a fixed number of choice occasions for each decision maker,
+or a vector of length <code>N</code> with decision maker specific
+numbers of choice occasions.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+<li id="fn8"><p>See the vignette on the model definition for more
+details, especially for the meaning of the parameters.<a href="#fnref8" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
