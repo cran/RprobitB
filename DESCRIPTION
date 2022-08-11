@@ -1,8 +1,8 @@
 Package: RprobitB
 Type: Package
 Title: Bayesian Probit Choice Modeling
-Version: 1.1.0
-Date: 2022-07-07
+Version: 1.1.1
+Date: 2022-08-11
 Authors@R: c(
     person("Lennart", "Oelschl\u00e4ger", 
            email = "oelschlaeger.lennart@gmail.com", 
@@ -47,7 +47,7 @@ LazyData: true
 LazyDataCompression: xz
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2022-07-22 09:20:19 UTC; loelschlaeger
+Packaged: 2022-08-11 13:00:30 UTC; loelschlaeger
 Author: Lennart Oelschläger [aut, cre]
     (<https://orcid.org/0000-0001-5421-9313>),
   Dietmar Bauer [aut] (<https://orcid.org/0000-0003-2920-7032>),
@@ -55,4 +55,4 @@ Author: Lennart Oelschläger [aut, cre]
   Manuel Batram [ctb]
 Maintainer: Lennart Oelschläger <oelschlaeger.lennart@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-07-22 11:00:06 UTC
+Date/Publication: 2022-08-11 14:10:10 UTC

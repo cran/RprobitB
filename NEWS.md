@@ -1,3 +1,7 @@
+# RprobitB 1.1.1
+
+* Small documentation fixes.
+
 # RprobitB 1.1.0
 
 ## New functionality
