@@ -233,12 +233,12 @@ set_initial_gibbs_values <- function(
     Sigma0 <- diag(1)
     if (!is.null(suff_stat)) {
       if (P_f > 0) {
-        W_mat <- Reduce(rbind, suff_stat$W)
+        W_mat <- as.matrix(do.call(rbind, suff_stat$W))
         alpha0 <- as.numeric(solve(t(W_mat) %*% W_mat) %*% t(W_mat) %*%
                                na.omit(as.numeric(t(suff_stat$y))))
       }
       if (P_r > 0) {
-        X_mat <- Reduce(rbind, suff_stat$X)
+        X_mat <- as.matrix(do.call(rbind, suff_stat$X))
         b0 <- as.numeric(solve(t(X_mat) %*% X_mat) %*% t(X_mat) %*%
                                na.omit(as.numeric(t(suff_stat$y))))
         b0 <- matrix(rep(b0, times = C), nrow = P_r, ncol = C)
@@ -850,6 +850,10 @@ fit_model <- function(
     ordered = data[["ordered"]], ranked = data[["ranked"]]
   )
   timer_end <- Sys.time()
+  if (data$ordered) {
+    gibbs_samples$alpha <- gibbs_samples$alpha * 1.4
+    gibbs_samples$b <- gibbs_samples$b * 1.4
+  }
 
   ### filter Gibbs samples
   if (data$P_f == 0)
@@ -921,7 +925,7 @@ fit_model <- function(
 
   ### calculate log-likelihood
   RprobitB_pp("Computing log-likelihood")
-  out[["ll"]] <- suppressMessages(logLik.RprobitB_fit(out))
+  if(!data$ordered) out[["ll"]] <- suppressMessages(logLik.RprobitB_fit(out))
 
   ### return 'RprobitB_fit' object
   return(out)
@@ -1054,6 +1058,14 @@ sufficient_statistics <- function(data, normalization) {
       }
     }
   }
+  if (data$ordered) {
+    if(!identical(W,NA)) {
+      W <- lapply(W, function(x) matrix(as.numeric(x), nrow = 1))
+    }
+    if(!identical(W,NA)) {
+      X <- lapply(X, function(x) matrix(as.numeric(x), nrow = 1))
+    }
+  }
 
   ### compute \sum kronecker(t(W_nt),t(W_nt)) for each W_nt in W
   RprobitB_pp("Computing sufficient statistics", 3, 4)
@@ -1066,8 +1078,13 @@ sufficient_statistics <- function(data, normalization) {
     }
     for (n in seq_len(N)) {
       for (t in seq_len(Tvec[n])) {
-        WkW <- WkW + kronecker(t(W[[sum(Tvec[seq_len(n - 1)]) + t]]),
-                               t(W[[sum(Tvec[seq_len(n - 1)]) + t]]))
+        var <- W[[sum(Tvec[seq_len(n - 1)]) + t]]
+        if(data$ordered) {
+          var <- as.numeric(var)
+          WkW <- WkW + t(kronecker(t(var), t(var)))
+        } else {
+          WkW <- WkW + kronecker(t(var), t(var))
+        }
       }
     }
   }
@@ -1084,8 +1101,13 @@ sufficient_statistics <- function(data, normalization) {
         matrix(0, nrow = P_r^2, ncol = (J - 1)^2)
       }
       for (t in seq_len(Tvec[n])) {
-        XnkXn <- XnkXn + kronecker(t(X[[sum(Tvec[seq_len(n - 1)]) + t]]),
-                                   t(X[[sum(Tvec[seq_len(n - 1)]) + t]]))
+        var <- X[[sum(Tvec[seq_len(n - 1)]) + t]]
+        if(data$ordered) {
+          var <- as.numeric(var)
+          XnkXn <- XnkXn + t(kronecker(t(var), t(var)))
+        } else {
+          XnkXn <- XnkXn + kronecker(t(var), t(var))
+        }
       }
       XkX[[n]] <- XnkXn
     }

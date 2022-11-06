@@ -120,13 +120,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -409,9 +416,9 @@ price, time, change, and comfort, respectively), while
 values. They can also be directly accessed via the <code>logLik()</code>
 method:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(model_train)</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -1727.744</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1727.744 (df=4)</span></span>
 <span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="fu">logLik</span>(model_train_sparse)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] -1865.887</span></span></code></pre></div>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1865.887 (df=1)</span></span></code></pre></div>
 </div>
 <div id="aic" class="section level3">
 <h3><code>AIC</code></h3>
@@ -425,7 +432,9 @@ in the fitted model.</p>
 <p>Alternatively, the <code>AIC()</code> method also returns the AIC
 values:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">AIC</span>(model_train, model_train_sparse, <span class="at">k =</span> <span class="dv">2</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3463.488 3733.773</span></span></code></pre></div>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                    df      AIC</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; model_train         4 3463.488</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3733.773</span></span></code></pre></div>
 <p>The AIC quantifies the trade-off between over- and under-fitting,
 where smaller values are preferred. Here, the increase in goodness of
 fit justifies the additional 3 parameters of
@@ -443,7 +452,9 @@ of parameters in the fitted model</a>. The interpretation is analogue to
 AIC.</p>
 <p>{RprobitB} also provided a method for the <code>BIC</code> value:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">BIC</span>(model_train, model_train_sparse)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3487.418 3739.756</span></span></code></pre></div>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;                    df      BIC</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; model_train         4 3487.418</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3739.756</span></span></code></pre></div>
 </div>
 <div id="waic-with-sewaic-and-pwaic" class="section level3">
 <h3><code>WAIC</code> (with <code>se(WAIC)</code> and
@@ -621,7 +632,7 @@ Learning Theory.”</span> <em>Journal of Machine Learning Research</em>
 <hr />
 <ol>
 <li id="fn1"><p>This vignette is built using R 4.2.1 with the {RprobitB}
-1.1.1 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+1.1.2 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>To show the model formulas in the output of
 <code>model_selection()</code>, add the argument
 <code>add_form = TRUE</code>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>

@@ -1,8 +1,8 @@
 Package: RprobitB
 Type: Package
 Title: Bayesian Probit Choice Modeling
-Version: 1.1.1
-Date: 2022-08-11
+Version: 1.1.2
+Date: 2022-11-06
 Authors@R: c(
     person("Lennart", "Oelschl\u00e4ger", 
            email = "oelschlaeger.lennart@gmail.com", 
@@ -37,7 +37,7 @@ BugReports: https://github.com/loelschlaeger/RprobitB/issues
 License: GPL-3
 Encoding: UTF-8
 Imports: Rcpp, mvtnorm, viridis, ggplot2, rlang, mixtools, doSNOW,
-        foreach, progress, gridExtra, crayon, plotROC, MASS
+        foreach, progress, gridExtra, crayon, plotROC, MASS, cli
 LinkingTo: Rcpp, RcppArmadillo
 Suggests: knitr, rmarkdown, mlogit, testthat (>= 3.0.0), covr
 Depends: R (>= 3.5.0)
@@ -47,7 +47,7 @@ LazyData: true
 LazyDataCompression: xz
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2022-08-11 13:00:30 UTC; loelschlaeger
+Packaged: 2022-11-06 16:21:08 UTC; Lennart
 Author: Lennart Oelschläger [aut, cre]
     (<https://orcid.org/0000-0001-5421-9313>),
   Dietmar Bauer [aut] (<https://orcid.org/0000-0003-2920-7032>),
@@ -55,4 +55,4 @@ Author: Lennart Oelschläger [aut, cre]
   Manuel Batram [ctb]
 Maintainer: Lennart Oelschläger <oelschlaeger.lennart@gmail.com>
 Repository: CRAN
-Date/Publication: 2022-08-11 14:10:10 UTC
+Date/Publication: 2022-11-06 17:40:10 UTC

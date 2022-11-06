@@ -29,6 +29,7 @@
 #' A data frame, criteria in columns, models in rows.
 #'
 #' @export
+#' @importFrom stats AIC BIC
 
 model_selection <- function(..., criteria = c("npar", "LL", "AIC", "BIC"),
                             add_form = FALSE) {
@@ -150,43 +151,13 @@ print.RprobitB_model_selection <- function(x, digits = 2, ...) {
   print(x)
 }
 
-#' @exportS3Method
-#' @importFrom stats AIC
-
-AIC.RprobitB_fit <- function(object, ..., k = 2) {
-  models <- list(...)
-  if(length(models) == 0){
-    models <- list(object)
-  } else {
-    models <- c(list(object), models)
-  }
-  ll <- sapply(models, logLik.RprobitB_fit)
-  npar <- sapply(models, npar)
-  aic <- mapply(function(ll, npar) -2 * ll + 2 * npar, ll, npar)
-  return(aic)
-}
-
-#' @exportS3Method
-#' @importFrom stats BIC
-
-BIC.RprobitB_fit <- function(object, ...) {
-  models <- list(...)
-  if(length(models) == 0){
-    models <- list(object)
-  } else {
-    models <- c(list(object), models)
-  }
-  ll <- sapply(models, logLik)
-  npar <- sapply(models, npar)
-  nobs <- sapply(models, nobs)
-  bic <- mapply(function(ll, npar, nobs) -2 * ll + npar * log(nobs), ll, npar, nobs)
-  return(bic)
-}
-
 #' Compute WAIC value
 #'
 #' @description
 #' This function computes the WAIC value of an \code{RprobitB_fit} object.
+#'
+#' @param x
+#' An object of class \code{RprobitB_fit}.
 #'
 #' @details
 #' WAIC is short for Widely Applicable (or Watanabe-Akaike) Information
@@ -205,13 +176,6 @@ BIC.RprobitB_fit <- function(object, ...) {
 #' The penalty term is computed as the sum over the variances in log-probability
 #' for each observation:
 #' \deqn{p_{WAIC} = \sum_i V_{\theta} \left[ \log p_{si} \right].}
-#' The \eqn{WAIC} has a standard error \eqn{SE} of
-#' \deqn{SE = \sqrt{n \cdot V_i \left[-2 \left(lppd -
-#' V_{\theta} \left[ \log p_{si} \right] \right)\right]},}
-#' where \eqn{n} is the number of choices.
-#'
-#' @param x
-#' An object of class \code{RprobitB_fit}.
 #'
 #' @return
 #' A numeric, the WAIC value, with the following attributes:
@@ -320,7 +284,7 @@ plot.RprobitB_waic <- function(x, ...) {
 #' @importFrom stats nobs
 
 nobs.RprobitB_fit <- function(object, ...) {
-  return(sum(object$data$T))
+  sum(object$data$T)
 }
 
 #' @exportS3Method
@@ -342,7 +306,12 @@ logLik.RprobitB_fit <- function(object, par_set = mean, recompute = FALSE, ...) 
       }
     }
   }
-  return(as.numeric(ll))
+  structure(
+    as.numeric(ll),
+    class = "logLik",
+    df = npar(object),
+    nobs = nobs(object)
+  )
 }
 
 #' Extract number of model parameters
@@ -446,21 +415,21 @@ compute_p_si <- function(x, ncores = parallel::detectCores() - 1, recompute = FA
   s <- NULL
   p_si <- foreach::foreach(s = 1:length(pars), .packages = "RprobitB",
                            .combine = "cbind", .options.snow = opts) %dopar% {
-    out <- c()
-    for(n in 1:x$data$N){
-      X_n = x$data$data[[n]]$X
-      y_n = x$data$data[[n]]$y
-      for(t in 1:x$data$T[n]) {
-        X_nt = X_n[[t]]
-        y_nt = y_n[t]
-        alt_index <- which(x$data$alternatives == y_nt)
-        out <- c(out, compute_choice_probabilities(
-          X = X_nt, alternatives = alt_index, parameter = pars[[s]])[alt_index]
-        )
-      }
-    }
-    out
-  }
+                             out <- c()
+                             for(n in 1:x$data$N){
+                               X_n = x$data$data[[n]]$X
+                               y_n = x$data$data[[n]]$y
+                               for(t in 1:x$data$T[n]) {
+                                 X_nt = X_n[[t]]
+                                 y_nt = y_n[t]
+                                 alt_index <- which(x$data$alternatives == y_nt)
+                                 out <- c(out, compute_choice_probabilities(
+                                   X = X_nt, alternatives = alt_index, parameter = pars[[s]])[alt_index]
+                                 )
+                               }
+                             }
+                             out
+                           }
 
   ### stop parallel backend
   parallel::stopCluster(cluster)

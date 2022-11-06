@@ -120,13 +120,20 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
   for (var i = 0; i < sheets.length; i++) {
     if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
     try { var rules = sheets[i].cssRules; } catch (e) { continue; }
-    for (var j = 0; j < rules.length; j++) {
+    var j = 0;
+    while (j < rules.length) {
       var rule = rules[j];
       // check if there is a div.sourceCode rule
-      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") continue;
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
       var style = rule.style.cssText;
       // check if color or background-color is set
-      if (rule.style.color === '' && rule.style.backgroundColor === '') continue;
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
       // replace div.sourceCode by a pre.sourceCode rule
       sheets[i].deleteRule(j);
       sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
@@ -759,7 +766,7 @@ Computing</em> 8. <a href="https://doi.org/10.1023/A:1008905311214">https://doi.
 <hr />
 <ol>
 <li id="fn1"><p>This vignette is built using R 4.2.1 with the {RprobitB}
-1.1.1 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+1.1.2 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
 <li id="fn2"><p>Mind that the model is invariant to permutations of the
 class labels <span class="math inline">\(1,\dots,C\)</span>. For that
 reason, we accept an update only if the ordering <span class="math inline">\(s_1&gt;\dots&gt;s_C\)</span> holds, thereby
