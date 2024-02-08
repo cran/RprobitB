@@ -1,3 +1,9 @@
+# RprobitB 1.1.3
+
+* Small fixes.
+
+* Added `train_choice` data set.
+
 # RprobitB 1.1.2
 
 * `logLik()` method now returns a `logLik` object that can be passed to `AIC()` and `BIC()` methods from {stats}.

@@ -118,19 +118,18 @@ See \href{https://loelschlaeger.de/RprobitB/articles/v02_choice_data.html}{the v
 for more details.
 }
 \examples{
-data("Train", package = "mlogit")
 data <- prepare_data(
   form = choice ~ price + time + comfort + change | 0,
-  choice_data = Train,
+  choice_data = train_choice,
   re = c("price", "time"),
-  id = "id",
-  idc = "choiceid",
+  id = "deciderID",
+  idc = "occasionID",
   standardize = c("price", "time")
 )
 
 ### ranked case
 choice_data <- data.frame(
-  "id" = 1:3, "choice" = c("A,B,C","A,C,B","B,C,A"), "cov" = 1
+  "id" = 1:3, "choice" = c("A,B,C", "A,C,B", "B,C,A"), "cov" = 1
 )
 data <- prepare_data(
   form = choice ~ 0 | cov + 0,
