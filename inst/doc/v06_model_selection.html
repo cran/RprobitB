@@ -49,7 +49,7 @@ overflow: visible;
 </style>
 <style type="text/css" data-origin="pandoc">
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span { line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -60,7 +60,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -148,6 +148,7 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; }
 div.csl-bib-body { }
 div.csl-entry {
 clear: both;
+margin-bottom: 0em;
 }
 .hanging div.csl-entry {
 margin-left:2em;
@@ -378,26 +379,22 @@ vignette on model fitting</a>:</p>
 <span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">R =</span> <span class="dv">1000</span>, <span class="at">B =</span> <span class="dv">500</span>, <span class="at">Q =</span> <span class="dv">10</span></span>
 <span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>)</span></code></pre></div>
 <p>As a competing model, we consider explaining the choices only by the
-alternative’s price, i.e. the probit model with the formula
-<code>choice ~ price | 0</code>:</p>
+alternative’s price:<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a></p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>model_train_sparse <span class="ot">&lt;-</span> <span class="fu">update</span>(model_train, <span class="at">form =</span> choice <span class="sc">~</span> price <span class="sc">|</span> <span class="dv">0</span>)</span></code></pre></div>
-<p>The <code>update()</code> function helps to estimate a new version of
-<code>model_train</code> with new specifications. Here, only
-<code>form</code> has been changed.</p>
 <div id="the-model_selection-function" class="section level2">
 <h2>The <code>model_selection()</code> function</h2>
-<p><code>{RprobitB}</code> provides the convenience function
-<code>model_selection()</code>, which takes an arbitrary number of
-<code>RprobitB_fit</code> objects and returns a matrix of model
+<p>The <code>model_selection()</code> function takes an arbitrary number
+of <code>RprobitB_fit</code> objects and returns a matrix of model
 selection criteria:</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">model_selection</span>(model_train, model_train_sparse)</span>
 <span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt;      model_train model_train_sparse</span></span>
 <span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; npar           4                  1</span></span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; LL      -1727.71           -1865.86</span></span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; AIC      3463.42            3733.72</span></span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; BIC      3487.35            3739.70</span></span></code></pre></div>
-<p>Specifying <code>criteria</code> is optional. Per default,
-<code>criteria = c(&quot;npar&quot;, &quot;LL&quot;, &quot;AIC&quot;, &quot;BIC&quot;)</code>.<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> The available model
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; LL      -1727.72           -1865.90</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; AIC      3463.44            3733.80</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; BIC      3487.37            3739.78</span></span></code></pre></div>
+<p>Specifying <code>criteria</code> for <code>model_selection()</code>
+is optional. Per default,
+<code>criteria = c(&quot;npar&quot;, &quot;LL&quot;, &quot;AIC&quot;, &quot;BIC&quot;)</code>.<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a> The available model
 selection criteria are explained in the following.</p>
 <div id="npar" class="section level3">
 <h3><code>npar</code></h3>
@@ -405,20 +402,17 @@ selection criteria are explained in the following.</p>
 computed by the <code>npar()</code> method:</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">npar</span>(model_train, model_train_sparse)</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="co">#&gt; [1] 4 1</span></span></code></pre></div>
-<p>Here, <code>model_train</code> has 4 parameters (a coefficient for
-price, time, change, and comfort, respectively), while
-<code>model_train_sparse</code> has only a single price coefficient.</p>
 </div>
 <div id="ll" class="section level3">
 <h3><code>LL</code></h3>
 <p>If <code>&quot;LL&quot;</code> is included in <code>criteria</code>,
 <code>model_selection()</code> returns the model’s log-likelihood
 values. They can also be directly accessed via the <code>logLik()</code>
-method:<a href="#fn3" class="footnote-ref" id="fnref3"><sup>3</sup></a></p>
+method:<a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">logLik</span>(model_train)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1727.71 (df=4)</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1727.719 (df=4)</span></span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="fu">logLik</span>(model_train_sparse)</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1865.86 (df=1)</span></span></code></pre></div>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt; &#39;log Lik.&#39; -1865.899 (df=1)</span></span></code></pre></div>
 </div>
 <div id="aic" class="section level3">
 <h3><code>AIC</code></h3>
@@ -434,8 +428,8 @@ in the fitted model.</p>
 values:</p>
 <div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">AIC</span>(model_train, model_train_sparse, <span class="at">k =</span> <span class="dv">2</span>)</span>
 <span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt;                    df      AIC</span></span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; model_train         4 3463.419</span></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3733.720</span></span></code></pre></div>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; model_train         4 3463.439</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3733.799</span></span></code></pre></div>
 <p>The AIC quantifies the trade-off between over- and under-fitting,
 where smaller values are preferred. Here, the increase in goodness of
 fit justifies the additional 3 parameters of
@@ -451,12 +445,12 @@ log-likelihood value</a>, <span class="math inline">\(\text{nobs}\)</span> is th
 (which can be accessed via the <code>nobs()</code> method), and <span class="math inline">\(\text{npar}\)</span> is the <a href="#npar">number
 of parameters in the fitted model</a>. The interpretation is analogue to
 AIC.</p>
-<p><code>{RprobitB}</code> also provided a method for the
+<p><code>{RprobitB}</code> also provides a method for the
 <code>BIC</code> value:</p>
 <div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">BIC</span>(model_train, model_train_sparse)</span>
 <span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt;                    df      BIC</span></span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; model_train         4 3487.349</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3739.702</span></span></code></pre></div>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; model_train         4 3487.368</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; model_train_sparse  1 3739.781</span></span></code></pre></div>
 </div>
 <div id="waic-with-sewaic-and-pwaic" class="section level3">
 <h3><code>WAIC</code> (with <code>se(WAIC)</code> and
@@ -474,7 +468,7 @@ p_\text{WAIC},\]</span></p>
 <p>where <span class="math inline">\(\text{lppd}\)</span> stands for log
 pointwise predictive density and <span class="math inline">\(p_\text{WAIC}\)</span> is a penalty term
 proportional to the variance in the posterior distribution that is
-sometimes called effective number of parameters, see <span class="citation">McElreath (<a href="#ref-McElreath2020">2020</a>)</span> p. 220 for a reference.</p>
+sometimes called effective number of parameters, see <span class="citation">McElreath (<a href="#ref-McElreath2020">2020</a>)</span> for a reference.</p>
 <p>The <span class="math inline">\(\text{lppd}\)</span> is approximated
 as follows. Let <span class="math display">\[p_{si} = \Pr(y_i\mid
 \theta_s)\]</span> be the probability of observation <span class="math inline">\(y_i\)</span> (here the single choices) given the
@@ -487,11 +481,17 @@ over the variances in log-probability for each observation: <span class="math di
 \left(\text{lppd} - \mathbb{V}_{\theta}  \log
 (p_{si})  \right)\right]},\]</span> where <span class="math inline">\(n\)</span> is the number of choices.</p>
 <p>Before computing the WAIC of an object, the probabilities <span class="math inline">\(p_{si}\)</span> must be computed via the
-<code>compute_p_si()</code> function: <a href="#fn4" class="footnote-ref" id="fnref4"><sup>4</sup></a></p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">compute_p_si</span>(model_train)</span></code></pre></div>
+<code>compute_p_si()</code> function. This computation can be very time
+consuming. To decrease the computation time, the function offers
+parallelization via specifying the number <code>ncores</code> of
+parallel CPU cores.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">compute_p_si</span>(model_train, <span class="at">ncores =</span> <span class="dv">1</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>model_train_sparse <span class="ot">&lt;-</span> <span class="fu">compute_p_si</span>(model_train_sparse, <span class="at">ncores =</span> <span class="dv">1</span>)</span></code></pre></div>
 <p>Afterwards, the WAIC can be accessed as follows:</p>
 <div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">WAIC</span>(model_train)</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">WAIC</span>(model_train_sparse)</span></code></pre></div>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="co">#&gt; 3464.00 (0.20)</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">WAIC</span>(model_train_sparse)</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; 3733.83 (0.07)</span></span></code></pre></div>
 </div>
 <div id="mmll" class="section level3">
 <h3><code>MMLL</code></h3>
@@ -499,11 +499,11 @@ over the variances in log-probability for each observation: <span class="math di
 model log-likelihood. The model’s marginal likelihood <span class="math inline">\(\Pr(y\mid M)\)</span> for a model <span class="math inline">\(M\)</span> and data <span class="math inline">\(y\)</span> is required for the computation of
 Bayes factors, see below. In general, the term has no closed form and
 must be approximated numerically.</p>
-<p><code>{RprobitB}</code> uses the posterior Gibbs samples derived from
-the <code>mcmc()</code> function to approximate the model’s marginal
-likelihood via the posterior harmonic mean estimator <span class="citation">(<a href="#ref-Newton1994">Newton and Raftery
-1994</a>)</span>: Let <span class="math inline">\(S\)</span> denote the
-number of available posterior samples <span class="math inline">\(\theta_1,\dots,\theta_S\)</span>. Then, <span class="math display">\[\Pr(y\mid M) = \left(\mathbb{E}_\text{posterior}
+<p><code>{RprobitB}</code> uses the posterior Gibbs samples to
+approximate the model’s marginal likelihood via the posterior harmonic
+mean estimator <span class="citation">(<a href="#ref-Newton1994">Newton
+and Raftery 1994</a>)</span>: Let <span class="math inline">\(S\)</span>
+denote the number of available posterior samples <span class="math inline">\(\theta_1,\dots,\theta_S\)</span>. Then, <span class="math display">\[\Pr(y\mid M) = \left(\mathbb{E}_\text{posterior}
 1/\Pr(y\mid \theta,M) \right)^{-1} \approx \left( \frac{1}{S} \sum_s
 1/\Pr(y\mid \theta_s,M) \right) ^{-1} = \tilde{\Pr}(y\mid
 M).\]</span></p>
@@ -517,10 +517,10 @@ function can be called with an <code>RprobitB_fit</code> object as
 input. The function returns the <code>RprobitB_fit</code> object, where
 the marginal likelihood value is saved as the entry <code>&quot;mml&quot;</code>
 and the marginal log-likelihood value as the attribute
-<code>&quot;mmll&quot;</code>:<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<code>&quot;mmll&quot;</code>:</p>
 <div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">mml</span>(model_train)</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>model_train<span class="sc">$</span>mml</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="fu">attr</span>(model_train<span class="sc">$</span>mml, <span class="st">&quot;mmll&quot;</span>)</span></code></pre></div>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="fu">attr</span>(model_train<span class="sc">$</span>mml, <span class="st">&quot;mmll&quot;</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; [1] -1730.902</span></span></code></pre></div>
 <p>There are two options for improving the approximation: As for the
 WAIC, you can use more posterior samples. Alternatively, you can combine
 the posterior harmonic mean estimate with the prior arithmetic mean
@@ -530,7 +530,7 @@ the model’s prior distribution. Then,</p>
 <p><span class="math display">\[\Pr(y\mid M) = \mathbb{E}_\text{prior}
 \Pr(y\mid \theta,M) \approx \frac{1}{S} \sum_s \Pr(y\mid \theta_s,M) =
 \tilde{\Pr}(y\mid M).\]</span></p>
-<p>Again, it hols by the law of large numbers, that <span class="math inline">\(\tilde{\Pr}(y\mid M) \to \Pr(y\mid M)\)</span>
+<p>Again, it holds by the law of large numbers, that <span class="math inline">\(\tilde{\Pr}(y\mid M) \to \Pr(y\mid M)\)</span>
 almost surely as <span class="math inline">\(S \to \infty\)</span>. The
 final approximation of the model’s marginal likelihood than is a
 weighted sum of the posterior harmonic mean estimate and the prior
@@ -538,11 +538,9 @@ arithmetic mean estimate, where the weights are determined by the sample
 sizes.</p>
 <p>To use the prior arithmetic mean estimator, call the
 <code>mml()</code> function with a specification of the number of prior
-draws <code>S</code> and set <code>recompute = TRUE</code>:<a href="#fn6" class="footnote-ref" id="fnref6"><sup>6</sup></a></p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>model_train <span class="ot">&lt;-</span> <span class="fu">mml</span>(model_train, <span class="at">S =</span> <span class="dv">1000</span>, <span class="at">recompute =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
-<p>Note that the prior arithmetic mean estimator works well if the prior
-and posterior distribution have a similar shape and strong overlap, as
-<span class="citation">Gronau et al. (<a href="#ref-Gronau2017">2017</a>)</span> points out. Otherwise, most of
+draws <code>S</code> and set <code>recompute = TRUE</code>. Note that
+the prior arithmetic mean estimator works well if the prior and
+posterior distribution have a similar shape and strong overlap, as <span class="citation">Gronau et al. (<a href="#ref-Gronau2017">2017</a>)</span> points out. Otherwise, most of
 the sampled prior values result in a likelihood value close to zero,
 thereby contributing only marginally to the approximation. In this case,
 a very large number <code>S</code> of prior samples is required.</p>
@@ -569,9 +567,12 @@ of <span class="math inline">\(BF(\texttt{mod0},\texttt{mod1}) &gt;
 by the data under consideration than <span class="math inline">\(\texttt{mod1}\)</span>.</p>
 <p>Adding <code>&quot;BF&quot;</code> to the <code>criteria</code> argument of
 <code>model_selection</code> yields the Bayes factors. We find a
-decisive evidence <span class="citation">(<a href="#ref-Jeffreys1998">Jeffreys 1998</a>)</span> in favor of
+decisive evidence <span class="citation">(<a href="#ref-Jeffreys1998">Jeffreys 1998</a>)</span> in favour of
 <code>model_train</code>.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">model_selection</span>(model_train, model_train_sparse, <span class="at">criteria =</span> <span class="fu">c</span>(<span class="st">&quot;BF&quot;</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">model_selection</span>(model_train, model_train_sparse, <span class="at">criteria =</span> <span class="st">&quot;BF&quot;</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="co">#&gt;                          model_train model_train_sparse</span></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co">#&gt; BF(*,model_train)                  1             &lt; 0.01</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a><span class="co">#&gt; BF(*,model_train_sparse)       &gt; 100                  1</span></span></code></pre></div>
 </div>
 <div id="pred_acc" class="section level3">
 <h3><code>pred_acc</code></h3>
@@ -580,42 +581,41 @@ argument for the <code>model_selection()</code> function returns the
 share of correctly predicted choices. From the output of
 <code>model_selection()</code> above (or alternatively the one in the
 following) we deduce that <code>model_train</code> correctly predicts
-about 6% of the choices more than <code>model_train_sparse</code>:<a href="#fn7" class="footnote-ref" id="fnref7"><sup>7</sup></a></p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">pred_acc</span>(model_train, model_train_sparse)</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.6951178 0.6340048</span></span></code></pre></div>
+about 6% of the choices more than <code>model_train_sparse</code>:<a href="#fn5" class="footnote-ref" id="fnref5"><sup>5</sup></a></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a><span class="fu">pred_acc</span>(model_train, model_train_sparse)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="co">#&gt; [1] 0.6971663 0.6340048</span></span></code></pre></div>
 </div>
 </div>
 <div id="references" class="section level2 unnumbered">
 <h2 class="unnumbered">References</h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-Akaike1974" class="csl-entry">
-Akaike, H. 1974. <span>“<span class="nocase">A New Look at the
-Statistical Model Identification</span>.”</span> <em>IEEE Transactions
-on Automatic Control</em> 19. <a href="https://doi.org/10.1109/TAC.1974.1100705">https://doi.org/10.1109/TAC.1974.1100705</a>.
+Akaike, H. 1974. <span>“A New Look at the Statistical Model
+Identification.”</span> <em>IEEE Transactions on Automatic Control</em>
+19.
 </div>
 <div id="ref-Gronau2017" class="csl-entry">
 Gronau, Q. F., A. Sarafoglou, D. Matzke, A. Ly, U. Boehm, M. Marsman, D.
 S. Leslie, J. J. Forster, E. Wagenmakers, and H. Steingroever. 2017.
 <span>“A Tutorial on Bridge Sampling.”</span> <em>Journal of
-Mathematical Psychology</em> 81. <a href="https://doi.org/10.1016/j.jmp.2017.09.005">https://doi.org/10.1016/j.jmp.2017.09.005</a>.
+Mathematical Psychology</em> 81.
 </div>
 <div id="ref-Hammersley1964" class="csl-entry">
 Hammersley, J. M., and D. C. Handscomb. 1964. <span>“General Principles
-of the <span>Monte Carlo</span> Method.”</span> In <em>Monte Carlo
-Methods</em>, edited by M. S. Bartlett and D. R. Cox, 50–75. Dordrecht:
-Springer Netherlands. <a href="https://doi.org/10.1007/978-94-009-5819-7_5">https://doi.org/10.1007/978-94-009-5819-7_5</a>.
+of the <span>Monte Carlo</span> Method.”</span> <em>Springer
+Verlag</em>.
 </div>
 <div id="ref-Jeffreys1998" class="csl-entry">
-Jeffreys, Harold. 1998. <em>The Theory of Probability</em>. OUP Oxford.
+Jeffreys, H. 1998. <em>The Theory of Probability</em>. OUP Oxford.
 </div>
 <div id="ref-Marin2014" class="csl-entry">
-Marin, J., and C. Robert. 2014. <em><span class="nocase">Bayesian
-Essentials with R</span></em>. Springer Verlag. <a href="https://doi.org/10.1007/978-1-4614-8687-9">https://doi.org/10.1007/978-1-4614-8687-9</a>.
+Marin, J., and C. Robert. 2014. <em>Bayesian Essentials with
+<span>R</span></em>. Springer Verlag.
 </div>
 <div id="ref-McElreath2020" class="csl-entry">
 McElreath, R. 2020. <em>Statistical Rethinking: A <span>Bayesian</span>
 Course with Examples in <span>R</span> and <span>Stan</span></em>.
-Chapman; Hall/CRC. <a href="https://doi.org/10.1201/9780429029608">https://doi.org/10.1201/9780429029608</a>.
+Chapman; Hall/CRC.
 </div>
 <div id="ref-Newton1994" class="csl-entry">
 Newton, M. A., and A. E. Raftery. 1994. <span>“Approximate
@@ -638,27 +638,20 @@ Learning Research</em> 11 (12).
 <div class="footnotes footnotes-end-of-document">
 <hr />
 <ol>
-<li id="fn1"><p>This vignette is built using R 4.1.2 with the
-<code>{RprobitB}</code> 1.1.4 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>To show the model formulas in the output of
+<li id="fn1"><p>This vignette is built using R 4.4.0 with the
+<code>{RprobitB}</code> 1.2.0 package.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>The <code>update()</code> function helps to estimate a
+new version of <code>model_train</code> with new specifications. Here,
+only <code>form</code> has been changed.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn3"><p>To show the model formulas in the output of
 <code>model_selection()</code>, add the argument
-<code>add_form = TRUE</code>.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
-<li id="fn3"><p>The log-likelihood values are per default computed at
+<code>add_form = TRUE</code>.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
+<li id="fn4"><p>The log-likelihood values are per default computed at
 the point estimates derived from the Gibbs sample means.
 <code>logLik()</code> has the argument <code>par_set</code>, where
-alternative statistics for the point estimate can be specified.<a href="#fnref3" class="footnote-back">↩︎</a></p></li>
-<li id="fn4"><p>This computation has been outsourced because it is very
-time consuming. For example, the computation for
-<code>model_train</code> took about 5 minutes. To decrease the
-computation time, the function offers parallelization via specifying the
-number <code>ncores</code> of parallel CPU cores.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
-<li id="fn5"><p>Note that the marginal likelihood value is very small.
-The given representation is required so that the value is not rounded to
-0 by the computer.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
-<li id="fn6"><p>The <code>mml()</code> function offers parallelization
-via specifying the number <code>ncores</code> of parallel CPU cores.<a href="#fnref6" class="footnote-back">↩︎</a></p></li>
-<li id="fn7"><p>See the vignette on choice prediction for more nuanced
-performance comparison in terms of sensitivity and specificity.<a href="#fnref7" class="footnote-back">↩︎</a></p></li>
+alternative statistics for the point estimate can be specified.<a href="#fnref4" class="footnote-back">↩︎</a></p></li>
+<li id="fn5"><p>See the vignette on choice prediction for more nuanced
+performance comparison in terms of sensitivity and specificity.<a href="#fnref5" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
 

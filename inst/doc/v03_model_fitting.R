@@ -11,12 +11,10 @@ library("RprobitB")
 options("RprobitB_progress" = FALSE)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  fit_model(data = data)
-
-## ----echo = FALSE-------------------------------------------------------------
-set.seed(1)
+# fit_model(data = data)
 
 ## ----message = FALSE----------------------------------------------------------
+set.seed(1)
 form <- choice ~ price + time + change + comfort | 0
 data <- prepare_data(form = form, choice_data = train_choice, id = "deciderID", idc = "occasionID")
 model_train <- fit_model(
@@ -27,9 +25,6 @@ model_train <- fit_model(
 ## ----coef-model-train---------------------------------------------------------
 coef(model_train)
 
-## ----plot-coef-model-train----------------------------------------------------
-plot(coef(model_train), sd = 3)
-
 ## ----str-gibbs-samples--------------------------------------------------------
 str(model_train$gibbs_samples, max.level = 2, give.attr = FALSE)
 
@@ -37,6 +32,7 @@ str(model_train$gibbs_samples, max.level = 2, give.attr = FALSE)
 summary(model_train,
   FUN = c(
     "mean" = mean,
+    "mode" = mode_approx,
     "sd" = stats::sd,
     "R^" = R_hat,
     "custom_stat" = function(x) abs(mean(x) - median(x))
@@ -55,8 +51,8 @@ plot(model_train, type = "acf")
 model_train <- transform(model_train, B = 1)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  model_train <- transform(model_train, Q = 100)
+# model_train <- transform(model_train, Q = 100)
 
 ## ----eval = FALSE-------------------------------------------------------------
-#  model_train <- transform(model_train, scale = "Sigma_1 := 1")
+# model_train <- transform(model_train, scale = "Sigma_1 := 1")
 

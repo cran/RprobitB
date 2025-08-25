@@ -1,4 +1,4 @@
-## ----label = setup, include = FALSE-------------------------------------------
+## ----setup, include = FALSE---------------------------------------------------
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(
 library("RprobitB")
 options("RprobitB_progress" = FALSE)
 
-## ----message = FALSE----------------------------------------------------------
+## ----model-train, message = FALSE---------------------------------------------
 form <- choice ~ price + time + change + comfort | 0
 data <- prepare_data(form = form, choice_data = train_choice, id = "deciderID", idc = "occasionID")
 model_train <- fit_model(
@@ -19,7 +19,7 @@ model_train <- fit_model(
   R = 1000, B = 500, Q = 10
 )
 
-## ----message = FALSE----------------------------------------------------------
+## ----model-train-sparse, message = FALSE--------------------------------------
 model_train_sparse <- update(model_train, form = choice ~ price | 0)
 
 ## ----model-selection-example--------------------------------------------------
@@ -38,23 +38,20 @@ AIC(model_train, model_train_sparse, k = 2)
 ## ----bic-example--------------------------------------------------------------
 BIC(model_train, model_train_sparse)
 
-## ----eval = FALSE-------------------------------------------------------------
-#  model_train <- compute_p_si(model_train)
+## ----compute-p-si-------------------------------------------------------------
+model_train <- compute_p_si(model_train, ncores = 1)
+model_train_sparse <- compute_p_si(model_train_sparse, ncores = 1)
 
-## ----waic-example, eval = FALSE-----------------------------------------------
-#  WAIC(model_train)
-#  WAIC(model_train_sparse)
+## ----waic-example-------------------------------------------------------------
+WAIC(model_train)
+WAIC(model_train_sparse)
 
-## ----eval = FALSE-------------------------------------------------------------
-#  model_train <- mml(model_train)
-#  model_train$mml
-#  attr(model_train$mml, "mmll")
+## ----compute-mml--------------------------------------------------------------
+model_train <- mml(model_train)
+attr(model_train$mml, "mmll")
 
-## ----eval = FALSE-------------------------------------------------------------
-#  model_train <- mml(model_train, S = 1000, recompute = TRUE)
-
-## ----bayes-factor-example, eval = FALSE---------------------------------------
-#  model_selection(model_train, model_train_sparse, criteria = c("BF"))
+## ----bayes-factor-example-----------------------------------------------------
+model_selection(model_train, model_train_sparse, criteria = "BF")
 
 ## ----pred-acc-example---------------------------------------------------------
 pred_acc(model_train, model_train_sparse)

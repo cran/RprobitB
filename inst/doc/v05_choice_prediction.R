@@ -35,10 +35,8 @@ coef(model_train)
 point_estimates(model_train)$Sigma
 
 ## ----roc-example, warning = FALSE, message = FALSE, out.width = "50%", fig.dim = c(6,6)----
-library(plotROC)
-ggplot(data = pred, aes(m = A, d = ifelse(true == "A", 1, 0))) +
-  geom_roc(n.cuts = 20, labels = FALSE) +
-  style_roc(theme = theme_grey)
+model_train_basic <- update(model_train, form = choice ~ price | 0)
+plot_roc(model_train, model_train_basic)
 
 ## ----predict-model-train-given-covs-1-----------------------------------------
 predict(
