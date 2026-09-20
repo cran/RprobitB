@@ -1,0 +1,345 @@
+---
+title: "Get started with RprobitB"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Get started with RprobitB}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ../inst/REFERENCES.bib
+link-citations: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4,
+  fig.align = "center"
+)
+```
+
+Discrete choice models describe how a decider selects one alternative from a
+finite set, for example a train connection, an electricity supplier, or a mode
+of transport [@Train2009]. The probability of each alternative is a function of
+the attributes of the alternatives and the characteristics of the decider. The
+coefficients of the model quantify the weight of each attribute in the decision,
+and ratios of coefficients quantify the trade-offs between attributes.
+**RprobitB** estimates discrete choice models in a Bayesian probit framework.
+This vignette fits a basic probit model to panel data from a stated choice
+experiment and introduces the posterior summaries, convergence diagnostics, and
+plots on which every analysis with the package relies.
+
+## The probit model
+
+Consider $N$ deciders $n = 1, \dots, N$, each of whom chooses at $T_n$
+occasions $t = 1, \dots, T_n$ one of $J$ alternatives $j = 1, \dots, J$. The
+probit model is a random utility model: it assigns to every alternative the
+latent utility
+
+$$U_{ntj} = X_{ntj}^\top \beta_n + \epsilon_{ntj}, \qquad \epsilon_{nt} =
+(\epsilon_{nt1}, \dots, \epsilon_{ntJ})^\top \sim \mathrm{N}(0, \Sigma),$$
+
+where $X_{ntj}$ is the vector of $P$ covariates 
+assigned to alternative $j$ at occasion $t$ of decider $n$, $\beta_n$ is the
+vector of the $P$ coefficients of decider $n$, and $\epsilon_{ntj}$ is an error
+term. The error vector $\epsilon_{nt}$ of an occasion is multivariate normal
+with mean zero and the $J \times J$ covariance matrix $\Sigma$, and it is
+independent across deciders and occasions. The decider chooses the alternative
+with the largest utility, $y_{nt} = \operatorname{argmax}_j U_{ntj}$, and only
+this choice $y_{nt}$ is observed, not the utilities. The choice probability of
+alternative $j$ is the probability that its utility exceeds the utilities of
+all other alternatives,
+
+$$\Pr(y_{nt} = j) = \Pr(U_{ntj} > U_{ntl} \text{ for all } l \neq j),$$
+
+which is a function of the covariates $X_{nt}$ of the occasion, the
+coefficients $\beta_n$, and the covariance matrix $\Sigma$. The choice 
+probabilities are invariant to
+adding a constant to all utilities and to multiplying all utilities by a
+positive number, so neither the level nor the scale of the utilities is
+identified. **RprobitB** removes the level by taking utility differences with
+respect to a base alternative and fixes the scale by restricting either one
+error variance or one coefficient. These two restrictions are the
+normalization of the model. The coefficient vector
+$\beta_n$ is common to all deciders unless random effects are specified, in
+which case the coefficients of every decider are drawn from a population
+distribution whose parameters are estimated. The vignette
+[Model specification and variants][v02] describes the normalization and the
+prior distribution, and the vignette [Modeling preference heterogeneity][v03]
+the specification of heterogeneous coefficients. Bayesian estimation of the
+multinomial probit model goes back to @McCulloch1994 and @Imai2005a, and
+@Oelschlaeger2026c gives a unified account of the heterogeneity models that
+**RprobitB** implements.
+
+## A stated choice experiment on train trips
+
+In 1987, a stated choice experiment commissioned by the Dutch national
+railways presented 235 travelers with pairs of hypothetical train trips and
+asked which trip of each pair they would choose [@BenAkiva1993]. The two
+trips of a pair differ in price, travel time, number of changes, and comfort
+class, and every traveler evaluated about twelve pairs. The **mlogit**
+package [@Croissant2020] provides the 2929 choices as the data set `Train`.
+The data are in wide format: one row per choice occasion, with the
+attributes of trip `A` in the columns ending in `_A` and those of trip `B`
+in the columns ending in `_B`. Prices are recorded in cents of Dutch
+guilders and travel times in minutes; both are converted to euro and hours 
+below.
+
+```{r data}
+library(RprobitB)
+set.seed(1)
+data("Train", package = "mlogit")
+Train$price_A <- Train$price_A / 100 / 2.20371
+Train$price_B <- Train$price_B / 100 / 2.20371
+Train$time_A <- Train$time_A / 60
+Train$time_B <- Train$time_B / 60
+head(Train)
+```
+
+The model formula names the response and the covariates:
+
+```{r formula}
+formula <- choice ~ price + time + change + factor(comfort) | 0
+```
+
+All four covariates are
+attributes of the trips with one coefficient common to both alternatives, which
+places them in the first part of the formula. The second part takes
+characteristics of the decider and the alternative-specific constants; here it
+contains only the `0` that removes the constants, which is appropriate because
+the labels `A` and `B` of the two trips were assigned arbitrarily and carry no
+utility of their own. The comfort class is stored as an integer but is a
+categorical variable with three levels; `factor(comfort)` expands it into dummy
+variables, as in `lm()`. The arguments `column_decider` and `column_occasion`
+identify the traveler and the choice occasion.
+The vignette [Model specification and variants][v02] describes the three parts
+of the formula and the further arguments of `fit()`.
+
+```{r fit}
+model <- fit(
+  formula = formula,
+  data = Train,
+  column_decider = "id",
+  column_occasion = "choiceid",
+  iterations = 2000,
+  warmup = 1000,
+  chains = 2,
+  progress = FALSE
+)
+model
+```
+
+`fit()` estimates the model with a Gibbs sampler, a Markov chain Monte Carlo
+method that draws the latent utilities and the parameters in turn from their
+conditional posterior distributions. The posterior distribution combines the
+prior distribution of the parameters, described in the vignette
+[Model specification and variants][v02], with the likelihood of the observed
+choices. A chain of the sampler consists of `iterations` draws. The first
+`warmup` of them are discarded, because the chain first has to move from its
+starting values into the region of the posterior, and the remaining draws are
+retained as the posterior draws from which every summary below is computed.
+Several independent chains, set by `chains`, sample the same posterior and
+make it possible to check convergence, that is, whether the retained draws
+represent the posterior distribution.
+
+## Posterior summaries
+
+`summary()` reports the posterior mean, mode, and standard deviation of every
+population-level parameter together with the convergence diagnostics of the
+**posterior** package [@Buerkner2026].
+
+```{r summary}
+summary(model)
+```
+
+The coefficients of price, travel
+time, and number of changes are negative, as expected: each of these
+attributes reduces the utility of a trip. Comfort is a factor whose level
+`0` denotes the highest class, so the negative coefficients of the dummies
+for levels `1` and `2` quantify the loss of utility in the lower classes.
+The error variance of the utility difference, `Sigma[B,B]`, is absent from
+the table because the default normalization fixes it to one.
+
+Because of this normalization, the coefficients are measured in units of the
+error standard deviation, and their absolute size has no substantive
+interpretation. The ratio of two coefficients is invariant to the scale and
+answers a substantive question: which price reduction compensates a
+traveler for one additional hour of travel time? `interpret()` computes such
+ratios for every posterior draw and expresses each effect in units of a
+reference effect, here the price:
+
+```{r interpret}
+compensation <- interpret(model, reference = "price")
+compensation
+```
+
+One additional hour of travel time is
+compensated by a price that is about
+`r round(abs(compensation$mean[compensation$effect == "time"]), 1)` euro lower
+(at 1987 prices), and the lowest comfort class relative to the highest by a
+price about
+`r round(abs(compensation$mean[compensation$effect == "factor(comfort)2"]), 1)`
+euro lower.
+
+The last two columns of the summary table are the convergence diagnostics
+recommended by @Vehtari2021:
+
+- `rhat` compares the variance between the chains with the variance within
+  the chains and equals one when all chains sample the same distribution.
+- `ess_bulk` is the effective sample size for the bulk of the posterior
+  distribution, that is, for its central part around the median as opposed
+  to its tails. Consecutive draws of a chain are correlated, and the
+  effective sample size is the number of independent draws that would
+  estimate the posterior mean or median with the same precision. A few
+  hundred effective draws suffice for these summaries; the precision of
+  extreme quantiles is governed by the tail effective sample size instead.
+
+The arguments `probs` and `statistics` select the columns of the table.
+`probs` adds posterior quantiles, and `statistics` selects the measures,
+among them the tail effective sample size, which governs the precision of
+the quantiles, and the Monte Carlo standard error of the mean, which
+quantifies the simulation error of the reported posterior mean.
+`?summary.RprobitB_fit` describes each measure.
+
+```{r summary-statistics}
+summary(
+  model,
+  statistics = c("mean", "mcse_mean", "ess_bulk", "ess_tail"),
+  probs = c(0.05, 0.95)
+)
+```
+
+`coef()` and `confint()` return posterior means or medians and equal-tailed
+credible intervals. The bounds of such an interval are the posterior quantiles
+at `(1 - level) / 2` and `(1 + level) / 2`, so that the interval contains the
+parameter with posterior probability `level`.
+
+```{r coef}
+coef(model)
+confint(model, level = 0.9)
+```
+
+`vcov()` returns the posterior covariance matrix of the parameters:
+
+```{r vcov}
+round(vcov(model), 5)
+```
+
+An interval plot displays the marginal posteriors: the thick bars cover the
+central 50% and the thin lines the central 90% of each posterior.
+
+```{r interval}
+plot(model, type = "interval")
+```
+
+## Graphical convergence diagnostics
+
+`plot()` delegates to **bayesplot** [@Gabry2025]. Trace plots show the draws
+of each chain against their index, and density overlays compare the
+marginal posteriors of the chains; there are two chains here because
+`fit()` was called with `chains = 2`. For converged chains, the traces are
+stationary without trend, and the densities of the chains coincide.
+
+```{r trace}
+plot(model, type = "trace", variables = c("beta[price]", "beta[time]"))
+plot(model, type = "density", variables = c("beta[price]", "beta[time]"))
+```
+
+Rank plots are a more sensitive check [@Vehtari2021]. The draws of all
+chains are pooled and ranked, and the histogram of the ranks is drawn for
+every chain. If all chains sample the same distribution, every chain
+receives ranks from the whole range with equal frequency, and the histograms
+are uniform. A chain that remains in a subregion of the posterior, for
+example because it has not yet left the region of its starting values,
+receives predominantly small or large ranks, and its histogram is peaked at
+one end.
+
+Autocorrelation plots show, for every chain, the correlation between draws
+that are $k$ iterations apart as a function of the lag $k$. Consecutive
+draws of a Gibbs sampler are dependent, so a chain carries less information
+than the same number of independent draws. The effective sample size
+expresses this loss in one number: it is the number of independent draws
+that would estimate the posterior mean with the same precision. In its
+classical form, it equals $S / (1 + 2 \sum_{k \geq 1} \rho_k)$ for $S$
+draws with autocorrelations $\rho_k$, so the faster the autocorrelation
+decays to zero, the closer the effective sample size is to the number of
+draws. `ess_bulk` applies this formula to rank-normalized draws, which makes
+it robust to heavy tails [@Vehtari2021].
+
+```{r rank}
+plot(model, type = "rank", variables = c("beta[price]", "beta[time]"))
+plot(model, type = "acf", variables = c("beta[price]", "beta[time]"))
+```
+
+Pairs plots show the joint posterior of two parameters and reveal posterior
+correlations:
+
+```{r pairs}
+plot(model, type = "pairs", variables = c("beta[price]", "beta[time]"))
+```
+
+## Working with the posterior draws
+
+The retained draws are stored as a `draws_array` of the **posterior** package
+with dimensions iteration, chain, and variable, so that all functions of
+that package apply to them directly.
+
+```{r draws}
+draws <- posterior::as_draws(model)
+dim(draws)
+posterior::summarise_draws(draws, "mean", "quantile2")
+```
+
+The standard accessor methods are available: `formula()` returns the fitted
+formula, `model.frame()` the data the model was fitted to, and `nobs()` the
+number of independent units in the likelihood. Here these are the observed
+choice occasions, because the model has one coefficient vector for all
+travelers. With random effects, and with the latent classes of the vignette
+[Modeling preference heterogeneity][v03], the choices of a traveler are
+dependent, and `nobs()` counts travelers.
+
+```{r accessors}
+formula(model)
+nobs(model)
+head(model.frame(model))
+```
+
+## Parallel chains
+
+The chains of a fit are independent of each other, so **RprobitB** can run
+them in parallel on several cores, which reduces the computing time in
+proportion to the number of chains. The package does not select a parallel
+backend itself. The chains run through the **future** framework
+[@Bengtsson2021], so a plan set before fitting is used automatically.
+
+```{r parallel, eval=FALSE}
+future::plan(future::multisession, workers = 4) # run chains on four cores
+parallel_model <- fit(
+  formula = formula,
+  data = Train,
+  column_decider = "id",
+  column_occasion = "choiceid"
+)
+future::plan(future::sequential) # return to sequential evaluation
+```
+
+In interactive sessions, all chains report their progress through the
+**progressr** package [@Bengtsson2026]. 
+
+## Further reading
+
+- [Model specification and variants][v02]: the normalization, the prior
+  distribution, the three covariate types, individual choice sets, and ordered
+  and ranked responses.
+- [Modeling preference heterogeneity][v03]: random coefficients and latent
+  classes.
+- [Posterior prediction][v04]: posterior predictive probabilities for the
+  population and for individual deciders, scenarios, out-of-sample prediction,
+  and marginal effects.
+- [Bayesian model evaluation][v05]: model comparison by WAIC, PSIS-LOO, and
+  Bayes factors.
+
+[v02]: https://loelschlaeger.de/RprobitB/articles/v02_model_variants.html
+[v03]: https://loelschlaeger.de/RprobitB/articles/v03_heterogeneity.html
+[v04]: https://loelschlaeger.de/RprobitB/articles/v04_prediction.html
+[v05]: https://loelschlaeger.de/RprobitB/articles/v05_model_evaluation.html
+
+## References

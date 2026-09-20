@@ -1,0 +1,231 @@
+---
+title: "Bayesian model evaluation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Bayesian model evaluation}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ../inst/REFERENCES.bib
+link-citations: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4,
+  fig.align = "center"
+)
+```
+
+This vignette describes how to compare competing model specifications.
+**RprobitB** provides three criteria for this purpose: the widely
+applicable information criterion (WAIC), Pareto-smoothed importance sampling
+leave-one-out cross-validation (PSIS-LOO), and Bayes factors. WAIC and
+PSIS-LOO estimate the expected predictive accuracy of a model for new data
+from the pointwise log-likelihood of the posterior draws
+[@Watanabe2010; @Vehtari2017]. A Bayes factor is the ratio of the marginal
+likelihoods of two models, that is, of the likelihood averaged over the
+prior of each model [@Kass1995]. In panel data, the pointwise
+log-likelihood is evaluated per decider, so WAIC and PSIS-LOO estimate the
+accuracy of predicting the choices of new deciders. The examples use data
+sets of the **AER** package [@Kleiber2008], the **mlogit** package
+[@Croissant2020], and the **MASS** package [@VenablesRipley2002]. The
+vignette [Get started with RprobitB][v01] explains how to fit and read a
+model, and the vignettes [Model specification and variants][v02] and
+[Modeling preference heterogeneity][v03] cover the specifications compared
+here.
+
+```{r setup}
+library(RprobitB)
+set.seed(1)
+```
+
+## A nested model comparison for travel mode choices
+
+The `TravelMode` data of the **AER** package record which of four modes 210
+travelers between Sydney and Melbourne had taken: air, train, bus, or car.
+The vignette [Model specification and variants][v02] fits a model in which
+terminal waiting time, in-vehicle cost, and travel time vary across modes,
+while household income and the size of the traveling party shift the
+utilities of the modes relative to air, the base alternative. 
+
+Does income
+change the mode choice beyond cost and time? The reduced model below omits
+the two traveler characteristics and the alternative-specific constants.
+`update()` rebuilds the call of the full model with the formula changed part
+by part: `. ~ wait + vcost + travel | 0` keeps the first part and empties the
+second.
+
+```{r fit}
+data("TravelMode", package = "AER")
+TravelMode$choice <- TravelMode$choice == "yes"
+TravelMode$vcost <- TravelMode$vcost / 1.6196
+TravelMode$income <- TravelMode$income / 1.6196
+full_model <- fit(
+  choice ~ wait + vcost + travel | income + size,
+  data = TravelMode,
+  format = "long",
+  column_decider = "individual",
+  column_alternative = "mode",
+  iterations = 6000,
+  warmup = 3000,
+  thin = 30,
+  chains = 2,
+  progress = FALSE
+)
+reduced_model <- update(full_model, . ~ wait + vcost + travel | 0)
+```
+
+`logLik()` evaluates the log-likelihood at the posterior means of the
+parameters. Its `df` attribute counts the free parameters, without the error
+variance that is fixed to identify the utility scale, and its `nobs`
+attribute counts the independent likelihood units, here the
+`r nobs(full_model)` travelers with one choice each.
+
+```{r loglik}
+logLik(full_model)
+logLik(reduced_model)
+```
+
+The log-likelihood values can be used to compute AIC and BIC, but it ignores the 
+posterior uncertainty about the parameters. WAIC and PSIS-LOO instead use all 
+posterior draws and are the primary criteria.
+
+## WAIC and PSIS-LOO
+
+`WAIC()` and `loo()` return objects of the **loo** package [@Vehtari2026].
+Both report the expected log predictive density `elpd`, an effective number
+of parameters, and the criterion on the deviance scale. Lower `waic` and
+`looic`, or equivalently higher `elpd`, mean better predictive accuracy.
+@Watanabe2010 introduced WAIC and showed that it asymptotically approximates
+Bayesian cross-validation; @Vehtari2017 and @Vehtari2024 developed the
+PSIS-LOO approximation and its diagnostics.
+
+```{r waic}
+WAIC(full_model)
+WAIC(reduced_model)
+```
+
+The **loo** package warns when the contribution of a decider to `p_waic`
+exceeds 0.4, the level above which @Vehtari2017 consider the WAIC
+approximation unreliable; here this concerns a few travelers. PSIS-LOO is
+preferable in this situation,
+because it comes with a diagnostic per traveler: a Pareto-k value below the
+printed threshold means that the importance sampling for that traveler is
+reliable, and larger values usually belong to travelers whose choices have
+low probability under the model [@Vehtari2024].
+
+```{r loo}
+loo_full <- loo(full_model)
+loo_reduced <- loo(reduced_model)
+loo_full
+```
+
+The **loo** package plots the Pareto-k values per traveler. Points above
+the dashed line mark the travelers whose choices are hardest to predict from
+the choices of the other travelers.
+
+```{r loo-plot}
+plot(loo_full)
+```
+
+`loo::loo_compare()` ranks the models by `elpd` and reports the difference to
+the best model with its standard error.
+
+```{r compare}
+loo::loo_compare(loo_full, loo_reduced)
+```
+
+The models are named in the order of the arguments, so `model1` is the full
+model. It ranks first, and the reduced model falls short by several
+standard errors of the difference: income and party size improve the
+prediction of the mode choice.
+
+## Bayes factors
+
+`bayes_factor()` estimates the marginal likelihood of each model with the
+**bridgesampling** package [@Gronau2020; @Meng1996] and returns their
+ratio; values above one favor the first model.
+
+```{r bf}
+set.seed(1)
+bayes_factor(full_model, reduced_model, log = TRUE)
+```
+
+The large positive log Bayes factor also favors the full model.
+
+## Models with random coefficients
+
+Does a random price coefficient improve the train model of the vignette
+[Get started with RprobitB][v01]? The fixed model is fitted first, on the
+first 100 travelers, and `update()` gives the price coefficient a normal
+random effect, as in the vignette [Posterior prediction][v04].
+
+```{r train}
+data("Train", package = "mlogit")
+Train$price_A <- Train$price_A / 100 / 2.20371
+Train$price_B <- Train$price_B / 100 / 2.20371
+Train$time_A <- Train$time_A / 60
+Train$time_B <- Train$time_B / 60
+train_small <- Train[Train$id %in% unique(Train$id)[1:100], ]
+train_fixed <- fit(
+  choice ~ price + time + change + factor(comfort) | 0,
+  data = train_small,
+  column_decider = "id",
+  column_occasion = "choiceid",
+  iterations = 2000,
+  warmup = 1000,
+  thin = 20,
+  chains = 2,
+  progress = FALSE
+)
+train_random <- update(train_fixed, random_effects = c(price = "n"))
+loo_fixed <- loo(train_fixed, progress = FALSE)
+loo_random <- loo(train_random, progress = FALSE)
+loo::loo_compare(loo_fixed, loo_random)
+```
+
+The model with the random price
+coefficient, `model2`, ranks first, and the fixed model falls short by
+several standard errors of the difference. Letting the price
+sensitivity vary between travelers thus improves the prediction of a
+traveler's choices.
+
+## Ordered and ranked responses
+
+The criteria are not specific to unordered choices. The ordered model of the
+vignette [Model specification and variants][v02] asked whether older
+students smoke less; the comparison below asks whether the exercise dummies
+improve the prediction.
+
+```{r ordered-comparison}
+data("survey", package = "MASS")
+smoking_full <- fit(
+  Smoke ~ Age + Exer | 0,
+  data = survey,
+  alternatives = c("Never", "Occas", "Regul", "Heavy"),
+  choice_type = "ordered",
+  column_decider = NULL,
+  chains = 1
+)
+smoking_age <- update(smoking_full, . ~ Age | 0)
+loo::loo_compare(
+  loo(smoking_full, progress = FALSE), loo(smoking_age, progress = FALSE)
+)
+```
+
+The difference is smaller than its standard error, so the exercise dummies 
+appear to not improve the prediction of how much a student smokes.
+
+## Further reading
+
+The vignette [Posterior prediction][v04] computes choice probabilities and
+marginal effects from a fitted model, and the vignette
+[Modeling preference heterogeneity][v03] describes the random coefficient
+and latent class specifications that the criteria above can compare.
+
+[v01]: https://loelschlaeger.de/RprobitB/articles/v01_get_started.html
+[v02]: https://loelschlaeger.de/RprobitB/articles/v02_model_variants.html
+[v03]: https://loelschlaeger.de/RprobitB/articles/v03_heterogeneity.html
+[v04]: https://loelschlaeger.de/RprobitB/articles/v04_prediction.html
+
+## References

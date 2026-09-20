@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Modeling preference heterogeneity</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Modeling preference heterogeneity</h1>
+
+
+
+<p>The probit model assigns alternative <span class="math inline">\(j\)</span> at occasion <span class="math inline">\(t\)</span> of decider <span class="math inline">\(n\)</span> the latent utility <span class="math inline">\(U_{ntj} = X_{ntj}^\top \beta_n +
+\epsilon_{ntj}\)</span> with the coefficient vector <span class="math inline">\(\beta_n\)</span>. A model with fixed coefficients
+sets <span class="math inline">\(\beta_n = \beta\)</span> for all
+deciders and thereby assumes that all deciders weigh price, time, and
+comfort in the same way. This is rarely true: some travelers react
+mainly to the fare, others to travel time, and some households would pay
+a premium for a local electricity supplier while others would not.
+<strong>RprobitB</strong> lets coefficients differ between deciders in
+two ways, which can be combined: random coefficients follow a continuous
+distribution over the population, and latent classes divide the deciders
+into groups. Both are requested through arguments of <code>fit()</code>.
+<span class="citation">Oelschläger (<a href="#ref-Oelschlaeger2026c">2026</a>)</span> treats the methodological
+background. Each variant is first estimated on simulated data, where the
+estimates can be compared with the parameters that generated them, and
+then applied to data of the <strong>mlogit</strong> package <span class="citation">(<a href="#ref-Croissant2020">Croissant
+2020</a>)</span>.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(RprobitB)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span></code></pre></div>
+<div id="random-coefficients" class="section level2">
+<h2>Random coefficients</h2>
+<p>Each term named in <code>random_effects</code> receives a separate
+coefficient for every decider, drawn from a population distribution
+whose parameters the sampler estimates together with the other
+parameters. Such hierarchical models capture continuous preference
+heterogeneity and allow inference about the coefficients of individual
+deciders <span class="citation">(<a href="#ref-Allenby1998">Allenby and
+Rossi 1998</a>)</span>. The population distribution is normal on a
+latent scale: the random coefficients of decider <span class="math inline">\(n\)</span> are <span class="math inline">\(\beta_n
+\sim \mathrm{N}(\mu, \Omega)\)</span> with the mean vector <span class="math inline">\(\mu\)</span> and the covariance matrix <span class="math inline">\(\Omega\)</span>, reported as
+<code>mu[&lt;effect&gt;]</code> and
+<code>Omega[&lt;effect&gt;,&lt;effect&gt;]</code>. The mixing
+distribution of an effect decides how its latent normal variable enters
+the utility. An unnamed vector requests correlated normal effects. A
+named vector selects the mixing distribution of each term as
+<code>&quot;&lt;covariate&gt;&quot; = &quot;&lt;distribution&gt;&quot;</code>, where
+<code>&quot;ASC&quot;</code> names the alternative-specific constants:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Value</th>
+<th align="left">Distribution</th>
+<th align="left">Coefficient</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>&quot;cn&quot;</code></td>
+<td align="left">correlated normal</td>
+<td align="left">any sign</td>
+</tr>
+<tr class="even">
+<td align="left"><code>&quot;n&quot;</code></td>
+<td align="left">uncorrelated normal</td>
+<td align="left">any sign</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>&quot;cln&quot;</code></td>
+<td align="left">correlated log-normal</td>
+<td align="left">positive</td>
+</tr>
+<tr class="even">
+<td align="left"><code>&quot;ln&quot;</code></td>
+<td align="left">uncorrelated log-normal</td>
+<td align="left">positive</td>
+</tr>
+<tr class="odd">
+<td align="left"><code>&quot;cln-&quot;</code></td>
+<td align="left">correlated log-normal</td>
+<td align="left">negative</td>
+</tr>
+<tr class="even">
+<td align="left"><code>&quot;ln-&quot;</code></td>
+<td align="left">uncorrelated log-normal</td>
+<td align="left">negative</td>
+</tr>
+</tbody>
+</table>
+<p>The six values combine two choices. The first is the shape of the
+distribution. A normal coefficient can take any value, which suits an
+attribute that some deciders like and others dislike. A log-normal
+coefficient is the exponential of a normal variable and therefore always
+positive, or, with the trailing minus, always negative. It suits an
+attribute whose sign is fixed by theory: a higher price does not raise
+the utility of any decider. Log-normal effects are estimated on the
+latent normal scale, so <code>mu</code>, <code>Omega</code>, and the
+individual draws refer to the normal variable whose exponential enters
+the utility. The second choice is whether an effect is correlated with
+the other correlated effects. Deciders who value travel time may also
+value comfort, and the <code>c</code> prefix adds the covariance between
+such effects to the model. An uncorrelated effect has its own variance
+but no covariance with any other effect, which appears as zeros in
+<code>Omega</code>.</p>
+<p>The following demonstration combines both choices. The price
+coefficient is negative log-normal and uncorrelated. Travel time and
+comfort receive correlated normal effects with a positive
+covariance.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>mixing <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  choice <span class="sc">~</span> price <span class="sc">+</span> time <span class="sc">+</span> comfort <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">random_effects =</span> <span class="fu">c</span>(<span class="at">price =</span> <span class="st">&quot;ln-&quot;</span>, <span class="at">time =</span> <span class="st">&quot;cn&quot;</span>, <span class="at">comfort =</span> <span class="st">&quot;cn&quot;</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">100</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">n_occasions =</span> <span class="dv">10</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>    <span class="at">beta =</span> <span class="fu">c</span>(<span class="at">price =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">time =</span> <span class="sc">-</span><span class="fl">0.8</span>, <span class="at">comfort =</span> <span class="fl">0.5</span>),</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>    <span class="at">Omega =</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="fl">0.25</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.4</span>, <span class="fl">0.2</span>), <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="fl">0.3</span>))</span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>  ),</span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">4000</span>,</span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">2000</span>,</span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a>  <span class="at">thin =</span> <span class="dv">2</span>,</span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span>,</span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>  <span class="at">save_individual_draws =</span> <span class="cn">TRUE</span></span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a>)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="fu">summary</span>(mixing)</span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ price + time + comfort | 0 | 0 </span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt; Samples: 1000 retained per chain, 1 chain</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;                variable   dgp   mean   mode     sd rhat ess_bulk</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;               mu[price] -1.00 -0.956 -0.946 0.1284 1.02     36.0</span></span>
+<span id="cb2-22"><a href="#cb2-22" tabindex="-1"></a><span class="co">#&gt;                mu[time] -0.80 -0.921 -0.897 0.1045 1.02     66.2</span></span>
+<span id="cb2-23"><a href="#cb2-23" tabindex="-1"></a><span class="co">#&gt;             mu[comfort]  0.50  0.563  0.561 0.0872 1.01     93.1</span></span>
+<span id="cb2-24"><a href="#cb2-24" tabindex="-1"></a><span class="co">#&gt;      Omega[price,price]  0.25  0.286  0.227 0.1082 1.04     31.4</span></span>
+<span id="cb2-25"><a href="#cb2-25" tabindex="-1"></a><span class="co">#&gt;        Omega[time,time]  0.40  0.580  0.547 0.1469 1.05     23.3</span></span>
+<span id="cb2-26"><a href="#cb2-26" tabindex="-1"></a><span class="co">#&gt;     Omega[time,comfort]  0.20  0.281  0.251 0.0971 1.00     70.0</span></span>
+<span id="cb2-27"><a href="#cb2-27" tabindex="-1"></a><span class="co">#&gt;  Omega[comfort,comfort]  0.30  0.374  0.381 0.1000 1.02     27.8</span></span></code></pre></div>
+<p>The <code>dgp</code> column lists the parameters that generated the
+data. For the price coefficient, <code>mu[price]</code> is the mean of
+the latent normal variable, so the coefficient that enters the utility
+is minus its exponential and negative for every decider.
+<code>time</code> and <code>comfort</code> share the estimated
+covariance <code>Omega[time,comfort]</code>, while <code>price</code>
+has no covariance entry with either of them.</p>
+<p><code>interpret()</code> converts the coefficients into trade-offs.
+For a random effect it uses the coefficient of the median decider, which
+for the log-normal price is minus the exponential of
+<code>mu[price]</code>:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a><span class="fu">interpret</span>(mixing, <span class="at">reference =</span> <span class="st">&quot;price&quot;</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="co">#&gt; 1 `time` compensates -2.41 `price` (95% interval -3.38 to -1.75)</span></span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; 1 `comfort` compensates 1.47 `price` (95% interval 0.985 to 2.13)</span></span></code></pre></div>
+<p>The <code>dgp_parameters</code> set the latent mean of the price
+effect to <code>-1</code>, so the true median price coefficient is
+<code>-exp(-1)</code>, about <code>-0.37</code>. Dividing the true time
+and comfort coefficients by it gives the true trade-offs, with which the
+posterior means above can be compared.</p>
+<p>The panel structure makes individual coefficients estimable.
+<code>coef(level = &quot;individual&quot;)</code> returns the posterior mean
+coefficient of every decider, on the latent normal scale for log-normal
+effects. The histogram shows the price coefficient of each of the 100
+deciders, all negative as the log-normal specification enforces, with
+the left tail containing the deciders who react most strongly to a
+higher price.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>individual <span class="ot">&lt;-</span> <span class="fu">coef</span>(mixing, <span class="at">level =</span> <span class="st">&quot;individual&quot;</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a><span class="fu">head</span>(individual)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a><span class="co">#&gt;        price       time    comfort</span></span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a><span class="co">#&gt; 1 -0.9435903 -0.7202750  0.8751589</span></span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; 2 -1.1755543 -1.2226296 -0.4385831</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; 3 -0.8668353 -0.2364210  0.8752388</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; 4 -0.7618339 -0.3089142  1.1401193</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; 5 -0.6839710  0.1314405  1.1817297</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; 6 -1.0070474 -1.9981351 -0.4826107</span></span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>price <span class="ot">&lt;-</span> <span class="sc">-</span><span class="fu">exp</span>(individual[, <span class="st">&quot;price&quot;</span>])</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="fu">hist</span>(</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>  price,</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>  <span class="at">breaks =</span> <span class="dv">30</span>, <span class="at">col =</span> <span class="st">&quot;grey85&quot;</span>, <span class="at">border =</span> <span class="st">&quot;white&quot;</span>,</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>  <span class="at">main =</span> <span class="st">&quot;&quot;</span>, <span class="at">xlab =</span> <span class="st">&quot;price coefficient of a decider&quot;</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a>)</span></code></pre></div>
+<p><img role="img" aria-label src="data:image/png;base64,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IRC6AFRbJ++44w557rnn7L9oxmLFisnLL78s3bt3lxUrVkQvYhoBBBBAAAEEEEAgTQRCdwle3W6//XZ7B3yim4VKliwpzzzzjFxzzTWyadOmNGGmGggggAACCCCAAAKuQCgDUK28jgFavXp1dz9yvZ5xxhm55jEDAQQQQAABBBBAoOgFQncJvujJqAECCCCAAAIIIIBAYQQIQAujx7oIIIAAAggggAACBRYgAC0wGSsggAACCCCAAAIIFEaAALQweqyLAAIIIIAAAgggUGABAtACk7ECAggggAACCCCAQGEECEALo8e6CCCAAAIIIIAAAgUWIAAtMBkrIIAAAggggAACCBRGgAC0MHqsiwACCCCAAAIIIFBgAQLQApOxAgIIIIAAAggggEBhBAhAC6PHuggggAACCCCAAAIFFgjtozgLvKchWeHgwYO+1DQnJ8eXctxCHMcR9587L9VXt25+7Wt2drZkZWWJX+W59Ut1/xKt52fdDh06JLrPpIIJFC9e3K7g17HgGBTMn9wIHGkCfv0t0e8cLetwfPekszkBaBodnd27d8uKFSt8qdFxxx0nFStW9KUsLUSDz2+//VYOHDhQ6DIrVaokVapUke+//77QZWkBDRo0kF27dsnmzZt9Ka9x48ZSokQJX8rSQvbv3y9LlizxpTx1q169ui9lZVoh+iNl1apV9lzxY99PO+00P4qhDAQQCKGAficuWrTIl5qXL19e9Ds70xLNKJl2xNlfBBBAAAEEEECgiAUIQIv4ALB5BBBAAAEEEEAg0wQIQDPtiLO/CCCAAAIIIIBAEQsQgBbxAWDzCCCAAAIIIIBApgkQgGbaEWd/EUAAAQQQQACBIhYgAC3iA8DmEUAAAQQQQACBTBMgAM20I87+IoAAAggggAACRSxAAFrEB4DNI4AAAggggAACmSZAAJppR5z9RQABBBBAAAEEiliAALSIDwCbRwABBBBAAAEEMk0g9AGoPg5ry5Ytsn379kw7duwvAggggAACCCAQSoFQBqDr1q2TESNGSN26de0zu6tWrSqVK1eWChUqSJMmTWTo0KGiz1UnIYAAAggggAACCKSfQLH0q1L+NVqzZo20bdtWsrKy5KKLLpL69etLpUqV7HttBV21apW89tprMnnyZJkxY4Ycf/zx+RfIUgQQQAABBBBAAIFABUIXgD7wwAO25fODDz6Q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" alt style="display: block; margin: auto;" /></p>
+<div id="willingness-to-pay-for-electricity-supplier-attributes" class="section level3">
+<h3>Willingness to pay for electricity supplier attributes</h3>
+<p>The <code>Electricity</code> data of the <strong>mlogit</strong>
+package come from a stated choice experiment in which 361 US households
+chose 8 to 12 times among four hypothetical suppliers. The suppliers
+differ in price (<code>pf</code>), contract length (<code>cl</code>),
+whether the supplier is local (<code>loc</code>) or well-known
+(<code>wk</code>), and whether it offers time-of-day (<code>tod</code>)
+or seasonal (<code>seas</code>) rates <span class="citation">(<a href="#ref-Huber2001">Huber and Train 2001</a>)</span>. The attribute
+columns end in the supplier number without a delimiter, <code>pf1</code>
+to <code>pf4</code>, so an underscore is inserted first, and the choice
+occasions of a household are numbered in the order of the rows.</p>
+<p>Contract length and locality receive correlated normal random
+coefficients, the other attributes one coefficient for all households.
+Fixing the price coefficient to <code>-1</code> identifies the scale and
+expresses every other coefficient in cents per kWh, that is, directly as
+a willingness to pay. The fit uses the first 100 households to keep the
+computation short.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Electricity&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mlogit&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">names</span>(Electricity) <span class="ot">&lt;-</span> <span class="fu">sub</span>(<span class="st">&quot;([a-z]+)([1-4])$&quot;</span>, <span class="st">&quot;</span><span class="sc">\\</span><span class="st">1_</span><span class="sc">\\</span><span class="st">2&quot;</span>, <span class="fu">names</span>(Electricity))</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>Electricity<span class="sc">$</span>occasion <span class="ot">&lt;-</span> <span class="fu">ave</span>(Electricity<span class="sc">$</span>id, Electricity<span class="sc">$</span>id, <span class="at">FUN =</span> seq_along)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>households <span class="ot">&lt;-</span> Electricity[Electricity<span class="sc">$</span>id <span class="sc">%in%</span> <span class="fu">unique</span>(Electricity<span class="sc">$</span>id)[<span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>], ]</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>electricity <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  choice <span class="sc">~</span> pf <span class="sc">+</span> cl <span class="sc">+</span> loc <span class="sc">+</span> wk <span class="sc">+</span> tod <span class="sc">+</span> seas <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">data =</span> households,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">random_effects =</span> <span class="fu">c</span>(<span class="st">&quot;cl&quot;</span>, <span class="st">&quot;loc&quot;</span>),</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="st">&quot;id&quot;</span>,</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">column_occasion =</span> <span class="st">&quot;occasion&quot;</span>,</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>  <span class="at">scale =</span> <span class="fu">c</span>(<span class="at">pf =</span> <span class="sc">-</span><span class="dv">1</span>),</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">4000</span>,</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">2000</span>,</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  <span class="at">thin =</span> <span class="dv">2</span>,</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span>,</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  <span class="at">save_individual_draws =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>)</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a><span class="fu">summary</span>(electricity)</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ pf + cl + loc + wk + tod + seas | 0 | 0 </span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="co">#&gt; Samples: 1000 retained per chain, 1 chain</span></span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a><span class="co">#&gt;        variable   mean    mode     sd  rhat ess_bulk</span></span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a><span class="co">#&gt;        beta[wk]  1.638  1.6481 0.1413 1.000    187.2</span></span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a><span class="co">#&gt;       beta[tod] -9.002 -9.0171 0.1560 1.001    140.1</span></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="co">#&gt;      beta[seas] -9.260 -9.2902 0.1574 1.007    124.2</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="co">#&gt;          mu[cl] -0.283 -0.3051 0.0645 1.003    404.5</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="co">#&gt;         mu[loc]  2.023  1.9833 0.2401 0.999    295.5</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="co">#&gt;    Omega[cl,cl]  0.304  0.2795 0.0717 1.005    133.7</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="co">#&gt;   Omega[cl,loc]  0.108  0.0941 0.1168 1.006    212.1</span></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="co">#&gt;  Omega[loc,loc]  2.286  2.0095 0.6530 1.003    179.3</span></span>
+<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="co">#&gt;      Sigma[2,2]  7.601  7.1518 1.4440 1.027     38.3</span></span>
+<span id="cb5-33"><a href="#cb5-33" tabindex="-1"></a><span class="co">#&gt;      Sigma[2,3]  2.377  2.2962 0.8535 1.000     32.5</span></span>
+<span id="cb5-34"><a href="#cb5-34" tabindex="-1"></a><span class="co">#&gt;      Sigma[3,3]  5.526  4.8822 1.1887 1.001    110.9</span></span>
+<span id="cb5-35"><a href="#cb5-35" tabindex="-1"></a><span class="co">#&gt;      Sigma[2,4]  3.955  3.6995 1.1866 1.065     28.4</span></span>
+<span id="cb5-36"><a href="#cb5-36" tabindex="-1"></a><span class="co">#&gt;      Sigma[3,4]  1.652  1.4400 0.7695 1.018     45.3</span></span>
+<span id="cb5-37"><a href="#cb5-37" tabindex="-1"></a><span class="co">#&gt;      Sigma[4,4]  6.139  5.8729 1.4809 1.020     53.6</span></span></code></pre></div>
+<p>Because the price coefficient is fixed, <code>interpret()</code>
+reports the coefficients directly as willingness to pay in cents per
+kWh, with credible intervals:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">interpret</span>(electricity, <span class="at">effects =</span> <span class="fu">c</span>(<span class="st">&quot;cl&quot;</span>, <span class="st">&quot;loc&quot;</span>, <span class="st">&quot;wk&quot;</span>))</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="co">#&gt; 1 `cl` compensates -0.283 `pf` (95% interval -0.413 to -0.149)</span></span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; 1 `loc` compensates 2.02 `pf` (95% interval 1.57 to 2.53)</span></span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a><span class="co">#&gt; 1 `wk` compensates 1.64 `pf` (95% interval 1.39 to 1.93)</span></span></code></pre></div>
+<p>On average, households would accept a price about 2 cents per kWh
+higher for a local supplier, and would need a price about 0.28 cents
+lower for each additional year of contract length.</p>
+</div>
+</div>
+<div id="latent-classes" class="section level2">
+<h2>Latent classes</h2>
+<p>A single normal distribution is a strong assumption about the
+distribution of preferences in a population. There may be commuters and
+leisure travelers, or households that focus on price and households that
+focus on service. <code>latent_class_effects</code> names the effects
+that differ between <code>classes</code> latent classes. Every decider
+belongs to exactly one class. The class weights <span class="math inline">\(w_1, \dots, w_K\)</span> are the probabilities of
+membership and sum to one, and the class allocation of every decider is
+a latent variable that the sampler draws together with the parameters.
+Naming a random effect in <code>latent_class_effects</code> replaces its
+normal distribution by a finite mixture of normals, which yields the
+latent-class mixed multinomial probit model of <span class="citation">Oelschläger and Bauer (<a href="#ref-Oelschlaeger2021">2021</a>)</span>. Random effects that are
+not named keep one distribution for all deciders, and a named
+coefficient that is not random takes one value per class and does not
+vary within it, as in the classical latent class model <span class="citation">(<a href="#ref-Kamakura1989">Kamakura and Russell
+1989</a>; <a href="#ref-Greene2003">Greene and Hensher 2003</a>)</span>.
+<code>class_update</code> selects how the number of classes is
+treated:</p>
+<ul>
+<li><code>class_update = &quot;fixed&quot;</code> when exactly <span class="math inline">\(K\)</span> substantively meaningful classes are
+assumed;</li>
+<li><code>class_update = &quot;sparse&quot;</code> when <code>classes</code> is a
+generous upper bound and redundant classes should empty;</li>
+<li><code>class_update = &quot;dirichlet_process&quot;</code> for a
+Dirichlet-process mixture whose number of occupied classes is itself
+random;</li>
+<li><code>class_update = &quot;weight_based&quot;</code> for the split, remove,
+and merge heuristic.</li>
+</ul>
+<p>All four updates are demonstrated on one simulated data set with two
+classes. The fixed-class fit simulates the data; the other three are
+refits through <code>update()</code>, which reuses the simulated
+data.</p>
+<div id="a-fixed-number-of-classes" class="section level3">
+<h3>A fixed number of classes</h3>
+<p>For <code>class_update = &quot;fixed&quot;</code>, <code>classes = K</code>
+fixes the number of classes. The class weights have the prior <span class="math inline">\((w_1,\ldots,w_K)\sim\operatorname{Dirichlet}(\delta,\ldots,\delta)\)</span>,
+where the default <code>class_concentration = 1</code> is uniform on the
+weight simplex. The class labels are arbitrary: swapping them leaves the
+likelihood unchanged, so the sampler may swap them during a run.
+<strong>RprobitB</strong> therefore relabels the retained draws after
+sampling, so that every draw uses the same labels <span class="citation">(<a href="#ref-Dahl2006">Dahl 2006</a>; <a href="#ref-Papastamoulis2010">Papastamoulis and Iliopoulos
+2010</a>)</span>, and numbers the classes by decreasing weight.</p>
+<p>The following demonstration uses eight occasions per decider and two
+well-separated classes: a majority with coefficients centered at
+<code>-1</code> and a minority centered at <code>2</code>.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>mixture <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  choice <span class="sc">~</span> x <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">random_effects =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">latent_class_effects =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">classes =</span> <span class="dv">2</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">100</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">n_occasions =</span> <span class="dv">8</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">save_individual_draws =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>    <span class="at">beta =</span> <span class="fu">list</span>(<span class="fu">c</span>(<span class="at">x =</span> <span class="sc">-</span><span class="dv">1</span>), <span class="fu">c</span>(<span class="at">x =</span> <span class="dv">2</span>)),</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>    <span class="at">Omega =</span> <span class="fu">list</span>(<span class="fu">matrix</span>(<span class="fl">0.2</span>), <span class="fu">matrix</span>(<span class="fl">0.2</span>)),</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>    <span class="at">weights =</span> <span class="fu">c</span>(<span class="fl">0.6</span>, <span class="fl">0.4</span>)</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  ),</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">1500</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>)</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="fu">summary</span>(mixture, <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  <span class="st">&quot;weight[1]&quot;</span>, <span class="st">&quot;weight[2]&quot;</span>, <span class="st">&quot;mu[x,1]&quot;</span>, <span class="st">&quot;mu[x,2]&quot;</span>,</span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  <span class="st">&quot;Omega[x,x,1]&quot;</span>, <span class="st">&quot;Omega[x,x,2]&quot;</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>))</span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | 0 | 0 </span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt; Samples: 750 retained per chain, 2 chains</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;      variable  dgp   mean   mode    sd rhat ess_bulk</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt;     weight[1]  0.6  0.642  0.647 0.050 1.00    736.8</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt;     weight[2]  0.4  0.358  0.353 0.050 1.00    736.8</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt;       mu[x,1] -1.0 -0.952 -0.923 0.111 1.06     62.5</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt;       mu[x,2]  2.0  1.726  1.648 0.233 1.08     23.8</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt;  Omega[x,x,1]  0.2  0.211  0.166 0.122 1.02     48.0</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt;  Omega[x,x,2]  0.2  0.338  0.188 0.263 1.11     13.7</span></span></code></pre></div>
+<p><code>latent_class_diagnostics()</code> returns the posterior
+distribution of the number of occupied classes, the membership
+probabilities of the deciders after relabeling, and the co-clustering
+matrix. Its entries are the posterior probabilities that two deciders
+belong to the same class:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>class_diagnostics <span class="ot">&lt;-</span> <span class="fu">latent_class_diagnostics</span>(mixture)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>class_diagnostics<span class="sc">$</span>occupancy</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt;   n_classes probability</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; 1         2           1</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>class_diagnostics<span class="sc">$</span>membership[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, ]</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;     class_1     class_2</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; 1 0.9953333 0.004666667</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; 2 1.0000000 0.000000000</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt; 3 0.9973333 0.002666667</span></span>
+<span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="co">#&gt; 4 0.0000000 1.000000000</span></span>
+<span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="co">#&gt; 5 0.0000000 1.000000000</span></span>
+<span id="cb8-12"><a href="#cb8-12" tabindex="-1"></a><span class="co">#&gt; 6 0.9986667 0.001333333</span></span>
+<span id="cb8-13"><a href="#cb8-13" tabindex="-1"></a>class_diagnostics<span class="sc">$</span>co_clustering[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span>
+<span id="cb8-14"><a href="#cb8-14" tabindex="-1"></a><span class="co">#&gt;             1         2           3           4           5           6</span></span>
+<span id="cb8-15"><a href="#cb8-15" tabindex="-1"></a><span class="co">#&gt; 1 1.000000000 0.9953333 0.992666667 0.004666667 0.004666667 0.994000000</span></span>
+<span id="cb8-16"><a href="#cb8-16" tabindex="-1"></a><span class="co">#&gt; 2 0.995333333 1.0000000 0.997333333 0.000000000 0.000000000 0.998666667</span></span>
+<span id="cb8-17"><a href="#cb8-17" tabindex="-1"></a><span class="co">#&gt; 3 0.992666667 0.9973333 1.000000000 0.002666667 0.002666667 0.996000000</span></span>
+<span id="cb8-18"><a href="#cb8-18" tabindex="-1"></a><span class="co">#&gt; 4 0.004666667 0.0000000 0.002666667 1.000000000 1.000000000 0.001333333</span></span>
+<span id="cb8-19"><a href="#cb8-19" tabindex="-1"></a><span class="co">#&gt; 5 0.004666667 0.0000000 0.002666667 1.000000000 1.000000000 0.001333333</span></span>
+<span id="cb8-20"><a href="#cb8-20" tabindex="-1"></a><span class="co">#&gt; 6 0.994000000 0.9986667 0.996000000 0.001333333 0.001333333 1.000000000</span></span></code></pre></div>
+</div>
+<div id="class-specific-coefficients" class="section level3">
+<h3>Class-specific coefficients</h3>
+<p>Do the train travelers of the vignette <a href="https://loelschlaeger.de/RprobitB/articles/v01_get_started.html">Get
+started with RprobitB</a> all trade time against money at the same rate,
+or are there classes with different values of time? The fit below uses
+the first 60 travelers, fixes the price coefficient to <code>-1</code>,
+and gives the time coefficient two class-specific values through
+<code>latent_class_effects</code> without a random effect, so each class
+has its own value of travel time and the remaining coefficients are
+common to both classes.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Train&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mlogit&quot;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>Train<span class="sc">$</span>price_A <span class="ot">&lt;-</span> Train<span class="sc">$</span>price_A <span class="sc">/</span> <span class="dv">100</span> <span class="sc">/</span> <span class="fl">2.20371</span></span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>Train<span class="sc">$</span>price_B <span class="ot">&lt;-</span> Train<span class="sc">$</span>price_B <span class="sc">/</span> <span class="dv">100</span> <span class="sc">/</span> <span class="fl">2.20371</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>Train<span class="sc">$</span>time_A <span class="ot">&lt;-</span> Train<span class="sc">$</span>time_A <span class="sc">/</span> <span class="dv">60</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>Train<span class="sc">$</span>time_B <span class="ot">&lt;-</span> Train<span class="sc">$</span>time_B <span class="sc">/</span> <span class="dv">60</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>train_small <span class="ot">&lt;-</span> Train[Train<span class="sc">$</span>id <span class="sc">%in%</span> <span class="fu">unique</span>(Train<span class="sc">$</span>id)[<span class="dv">1</span><span class="sc">:</span><span class="dv">60</span>], ]</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>train_classes <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  choice <span class="sc">~</span> price <span class="sc">+</span> time <span class="sc">+</span> change <span class="sc">+</span> <span class="fu">factor</span>(comfort) <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>  <span class="at">data =</span> train_small,</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>  <span class="at">latent_class_effects =</span> <span class="st">&quot;time&quot;</span>,</span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">classes =</span> <span class="dv">2</span>,</span>
+<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="st">&quot;id&quot;</span>,</span>
+<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>  <span class="at">column_occasion =</span> <span class="st">&quot;choiceid&quot;</span>,</span>
+<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">scale =</span> <span class="fu">c</span>(<span class="at">price =</span> <span class="sc">-</span><span class="dv">1</span>),</span>
+<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">1500</span>,</span>
+<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>)</span>
+<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a><span class="fu">summary</span>(train_classes, <span class="at">variables =</span> <span class="fu">c</span>(</span>
+<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>  <span class="st">&quot;weight[1]&quot;</span>, <span class="st">&quot;weight[2]&quot;</span>, <span class="st">&quot;beta[time,1]&quot;</span>, <span class="st">&quot;beta[time,2]&quot;</span></span>
+<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a>))</span>
+<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ price + time + change + factor(comfort) | 0 | 0 </span></span>
+<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a><span class="co">#&gt; Samples: 750 retained per chain, 2 chains</span></span>
+<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="co">#&gt;      variable    mean    mode     sd rhat ess_bulk</span></span>
+<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="co">#&gt;     weight[1]   0.752   0.758 0.0857 1.02     63.6</span></span>
+<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="co">#&gt;     weight[2]   0.248   0.242 0.0857 1.02     63.6</span></span>
+<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="co">#&gt;  beta[time,1]  -2.702  -2.973 1.0179 1.02     72.6</span></span>
+<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="co">#&gt;  beta[time,2] -18.709 -16.929 4.5048 1.03     35.8</span></span></code></pre></div>
+<p>With the price coefficient fixed at <code>-1</code>, the
+class-specific time coefficients are values of travel time in euro per
+hour, which <code>interpret()</code> reports class by class:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>time_by_class <span class="ot">&lt;-</span> <span class="fu">interpret</span>(train_classes, <span class="at">effects =</span> <span class="st">&quot;time&quot;</span>)</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>time_by_class</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a><span class="co">#&gt; Class 1: 1 `time` compensates -2.7 `price` (95% interval -4.64 to -0.623)</span></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="co">#&gt; Class 2: 1 `time` compensates -18.7 `price` (95% interval -33 to -12.9)</span></span></code></pre></div>
+<p>The larger class values an hour at about 3 euro, the smaller class at
+about 19 euro. The smaller class chooses the faster trip almost
+regardless of its price.</p>
+</div>
+<div id="weight-based-class-updates" class="section level3">
+<h3>Weight-based class updates</h3>
+<p><span class="citation">Oelschläger and Bauer (<a href="#ref-Oelschlaeger2021">2021</a>)</span> presents a weight-based
+update scheme for latent class analysis. Every <code>buffer</code>
+warmup iterations, it removes the smallest class if its weight is below
+<code>epsmin</code>, splits the largest class if its weight is above
+<code>epsmax</code>, or merges the closest pair of classes if the
+distance of their means is below <code>deltamin</code>, at most one
+operation in this order. <code>weight_based_control</code> overrides the
+defaults of these constants, and <code>max_classes</code> bounds the
+splitting. These dimension changes correspond to no prior on the number
+of classes, and they stop after warmup, so the reported
+<code>n_classes</code> is the outcome of a search, not a posterior
+distribution.</p>
+<p>This refit and the two in the following subsections change the class
+update, so <code>summary()</code> has no <code>dgp</code> column for
+them. The helper <code>recover_classes()</code> provides the comparison
+with the true values instead. The classes are numbered by decreasing
+weight, so the first class should be the majority with weight
+<code>0.6</code> and mean <code>-1</code>, and the second class the
+minority with weight <code>0.4</code> and mean <code>2</code>. The
+helper puts the posterior means of these four variables and the most
+probable number of occupied classes beside the true values. Applied to
+the fit with two fixed classes, it gives the reference for the
+refits:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>recover_classes <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  variables <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;weight[1]&quot;</span>, <span class="st">&quot;weight[2]&quot;</span>, <span class="st">&quot;mu[x,1]&quot;</span>, <span class="st">&quot;mu[x,2]&quot;</span>)</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  occupancy <span class="ot">&lt;-</span> <span class="fu">latent_class_diagnostics</span>(x)<span class="sc">$</span>occupancy</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="fu">data.frame</span>(</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>    <span class="at">variable =</span> <span class="fu">c</span>(<span class="st">&quot;n_classes&quot;</span>, variables),</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>    <span class="at">dgp =</span> <span class="fu">c</span>(<span class="dv">2</span>, <span class="fl">0.6</span>, <span class="fl">0.4</span>, <span class="sc">-</span><span class="dv">1</span>, <span class="dv">2</span>),</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>    <span class="at">estimate =</span> <span class="fu">round</span>(<span class="fu">c</span>(</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>      occupancy<span class="sc">$</span>n_classes[<span class="fu">which.max</span>(occupancy<span class="sc">$</span>probability)],</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>      <span class="fu">coef</span>(x)[variables]</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>    ), <span class="dv">2</span>),</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>    <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>  )</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>}</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="fu">recover_classes</span>(mixture)</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt;    variable  dgp estimate</span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; 1 n_classes  2.0     2.00</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; 2 weight[1]  0.6     0.64</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt; 3 weight[2]  0.4     0.36</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt; 4   mu[x,1] -1.0    -0.95</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt; 5   mu[x,2]  2.0     1.73</span></span></code></pre></div>
+<p>The weight-based refit is compared in the same way:</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>weight_based <span class="ot">&lt;-</span> <span class="fu">update</span>(mixture, <span class="at">class_update =</span> <span class="st">&quot;weight_based&quot;</span>)</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">recover_classes</span>(weight_based)</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a><span class="co">#&gt;    variable  dgp estimate</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a><span class="co">#&gt; 1 n_classes  2.0     2.00</span></span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a><span class="co">#&gt; 2 weight[1]  0.6     0.63</span></span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a><span class="co">#&gt; 3 weight[2]  0.4     0.37</span></span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a><span class="co">#&gt; 4   mu[x,1] -1.0    -0.95</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a><span class="co">#&gt; 5   mu[x,2]  2.0     1.90</span></span></code></pre></div>
+<p>The run ends with the two classes that generated the data, and their
+weights and means agree closely with those of the fixed fit.</p>
+</div>
+<div id="sparse-finite-mixtures" class="section level3">
+<h3>Sparse finite mixtures</h3>
+<p>A sparse finite mixture fixes a generous upper bound <span class="math inline">\(K\)</span>, permits empty classes, and places the
+symmetric Dirichlet prior with a small concentration <span class="math inline">\(e_0\)</span> on the weights, which favors emptying
+redundant classes <span class="citation">(<a href="#ref-Rousseau2011">Rousseau and Mengersen 2011</a>; <a href="#ref-FruehwirthSchnatter2019">Frühwirth-Schnatter and
+Malsiner-Walli 2019</a>)</span>. The default
+<code>class_concentration = c(shape = 1, rate = 200)</code> is the gamma
+hyperprior <span class="math inline">\(e_0\sim\operatorname{Gamma}(1,200)\)</span> with
+mean <code>0.005</code>. Under a fixed <span class="math inline">\(e_0\)</span>, the prior expected number of
+occupied classes among <span class="math inline">\(N\)</span> deciders
+is</p>
+<p><span class="math display">\[
+K\left[1-
+\frac{\Gamma(Ke_0)\,\Gamma((K-1)e_0+N)}
+     {\Gamma((K-1)e_0)\,\Gamma(Ke_0+N)}\right],
+\]</span></p>
+<p>which translates <span class="math inline">\(e_0\)</span> into a
+statement about the number of classes. At the prior mean <span class="math inline">\(e_0 = 0.005\)</span>, with <span class="math inline">\(K = 6\)</span> and the 100 deciders of the
+simulated data, the prior expects close to a single occupied class. The
+refit sets the upper bound to six classes for the two-class data.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>sparse <span class="ot">&lt;-</span> <span class="fu">update</span>(mixture, <span class="at">classes =</span> <span class="dv">6</span>, <span class="at">class_update =</span> <span class="st">&quot;sparse&quot;</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">summary</span>(sparse)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | 0 | 0 </span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; Samples: 750 retained per chain, 2 chains</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a><span class="co">#&gt;             variable occupied     mean     mode      sd rhat ess_bulk</span></span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a><span class="co">#&gt;            weight[1]  1.00000  0.64853  0.65088 0.04906 1.00    398.8</span></span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a><span class="co">#&gt;            weight[2]  1.00000  0.34974  0.35131 0.04999 1.00    357.3</span></span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a><span class="co">#&gt;            weight[3]  0.01867  0.04568  0.01316 0.05625   NA       NA</span></span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a><span class="co">#&gt;            weight[4]  0.01400  0.04428  0.02009 0.04498   NA       NA</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a><span class="co">#&gt;            weight[5]  0.00133  0.00777  0.00200 0.00819   NA       NA</span></span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="co">#&gt;              mu[x,1]  1.00000 -0.94376 -0.92041 0.10470 1.01    101.4</span></span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt;              mu[x,2]  1.00000  1.80321  1.80700 0.28163 1.11     14.9</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt;              mu[x,3]  0.01867  0.21099  0.86381 1.22663   NA       NA</span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt;              mu[x,4]  0.01400  0.66316  0.00170 1.40181   NA       NA</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt;              mu[x,5]  0.00133  0.38135 -0.64276 1.45400   NA       NA</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,1]  1.00000  0.21250  0.14544 0.10665 1.04     59.1</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,2]  1.00000  0.42390  0.19726 0.44729 1.10     15.5</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,3]  0.01867  0.71721  0.24689 0.86957   NA       NA</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,4]  0.01400  0.42503  0.22908 0.38434   NA       NA</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,5]  0.00133  0.23504  0.10206 0.18880   NA       NA</span></span>
+<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a><span class="co">#&gt;  class_concentration  1.00000  0.00811  0.00386 0.00520 1.14     14.0</span></span>
+<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a><span class="co">#&gt;            n_classes  1.00000  2.03400  2.00000 0.18129 1.02     88.4</span></span>
+<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="fu">latent_class_diagnostics</span>(sparse)<span class="sc">$</span>occupancy</span>
+<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a><span class="co">#&gt;   n_classes probability</span></span>
+<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a><span class="co">#&gt; 1         2       0.966</span></span>
+<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a><span class="co">#&gt; 2         3       0.034</span></span>
+<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a><span class="fu">recover_classes</span>(sparse)</span>
+<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a><span class="co">#&gt;    variable  dgp estimate</span></span>
+<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a><span class="co">#&gt; 1 n_classes  2.0     2.00</span></span>
+<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a><span class="co">#&gt; 2 weight[1]  0.6     0.65</span></span>
+<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a><span class="co">#&gt; 3 weight[2]  0.4     0.35</span></span>
+<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="co">#&gt; 4   mu[x,1] -1.0    -0.94</span></span>
+<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a><span class="co">#&gt; 5   mu[x,2]  2.0     1.80</span></span></code></pre></div>
+<p>Although the prior favors a single class, the posterior concentrates
+on two occupied classes, whose weights and means are close to the true
+values. When the number of classes varies, a class exists only in part
+of the draws, and the <code>occupied</code> column of
+<code>summary()</code> reports this share.</p>
+</div>
+<div id="dirichlet-process-mixtures" class="section level3">
+<h3>Dirichlet-process mixtures</h3>
+<p>For <code>class_update = &quot;dirichlet_process&quot;</code>, the precision
+<span class="math inline">\(\alpha\)</span> controls the prior tendency
+to open new classes, with the default <span class="math inline">\(\alpha\sim\operatorname{Gamma}(2,4)\)</span> of
+mean <code>0.5</code>. Conditional on a fixed <span class="math inline">\(\alpha\)</span>, the prior expects <span class="math inline">\(\sum_{i=1}^{N}\alpha/(\alpha+i-1)\)</span>
+occupied classes among <span class="math inline">\(N\)</span> deciders,
+which for <span class="math inline">\(\alpha = 0.5\)</span> and 100
+deciders is about three. <strong>RprobitB</strong> updates <span class="math inline">\(\alpha\)</span> with the augmentation of <span class="citation">Escobar and West (<a href="#ref-Escobar1995">1995</a>)</span> and the allocations with the
+algorithm of <span class="citation">Neal (<a href="#ref-Neal2000">2000</a>)</span>. <code>max_classes</code> caps the
+number of classes the sampler may open, and <code>fit()</code> warns
+when the draws reach the cap.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>dynamic <span class="ot">&lt;-</span> <span class="fu">update</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  mixture, <span class="at">class_update =</span> <span class="st">&quot;dirichlet_process&quot;</span>, <span class="at">max_classes =</span> <span class="dv">15</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">1000</span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">summary</span>(dynamic)</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | 0 | 0 </span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 2 chains</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt;             variable occupied    mean    mode      sd rhat ess_bulk</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt;            weight[1]    1.000  0.6162  0.6399 0.05061 1.08     23.4</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt;            weight[2]    1.000  0.3196  0.3530 0.05394 1.05     37.1</span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt;            weight[3]    0.739  0.0522  0.0185 0.04794   NA       NA</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt;            weight[4]    0.418  0.0411  0.0122 0.05132   NA       NA</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt;            weight[5]    0.211  0.0273  0.0103 0.02813   NA       NA</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt;            weight[6]    0.094  0.0201  0.0107 0.01562   NA       NA</span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt;            weight[7]    0.041  0.0139  0.0100 0.00666   NA       NA</span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt;            weight[8]    0.013  0.0138  0.0100 0.00506   NA       NA</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt;            weight[9]    0.004  0.0100  0.0100 0.00000   NA       NA</span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt;           weight[10]    0.001  0.0100  0.0100      NA   NA       NA</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt;              mu[x,1]    1.000 -0.9541 -0.9353 0.10484 1.09     18.2</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt;              mu[x,2]    1.000  1.8161  1.8702 0.26389 1.09     33.7</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt;              mu[x,3]    0.739 -0.2260  1.5488 2.55053   NA       NA</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt;              mu[x,4]    0.418 -0.5404 -0.7682 2.23122   NA       NA</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt;              mu[x,5]    0.211  0.5182 -0.6997 2.82037   NA       NA</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt;              mu[x,6]    0.094  0.4110 -0.5243 2.79613   NA       NA</span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt;              mu[x,7]    0.041  1.3673  0.4289 2.29924   NA       NA</span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt;              mu[x,8]    0.013 -0.4197  0.4193 3.10556   NA       NA</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt;              mu[x,9]    0.004  1.8442  1.7016 2.97785   NA       NA</span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt;             mu[x,10]    0.001  2.4817  2.4817      NA   NA       NA</span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,1]    1.000  0.1907  0.1293 0.08694 1.13     20.0</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,2]    1.000  0.3680  0.1879 0.29598 1.08     28.7</span></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,3]    0.739  1.0103  0.2429 2.55221   NA       NA</span></span>
+<span id="cb14-34"><a href="#cb14-34" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,4]    0.418  1.0205  0.2769 1.72494   NA       NA</span></span>
+<span id="cb14-35"><a href="#cb14-35" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,5]    0.211  1.0638  0.2956 1.97809   NA       NA</span></span>
+<span id="cb14-36"><a href="#cb14-36" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,6]    0.094  0.7327  0.2879 1.06701   NA       NA</span></span>
+<span id="cb14-37"><a href="#cb14-37" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,7]    0.041  0.7324  0.2946 0.88532   NA       NA</span></span>
+<span id="cb14-38"><a href="#cb14-38" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,8]    0.013  0.7130  0.3192 0.85467   NA       NA</span></span>
+<span id="cb14-39"><a href="#cb14-39" tabindex="-1"></a><span class="co">#&gt;         Omega[x,x,9]    0.004  0.6714  0.3993 0.49658   NA       NA</span></span>
+<span id="cb14-40"><a href="#cb14-40" tabindex="-1"></a><span class="co">#&gt;        Omega[x,x,10]    0.001  0.9626  0.9626      NA   NA       NA</span></span>
+<span id="cb14-41"><a href="#cb14-41" tabindex="-1"></a><span class="co">#&gt;  class_concentration    1.000  0.5294  0.4154 0.29634 1.02    104.1</span></span>
+<span id="cb14-42"><a href="#cb14-42" tabindex="-1"></a><span class="co">#&gt;            n_classes    1.000  3.5210  3.0000 1.40482 1.06     30.3</span></span>
+<span id="cb14-43"><a href="#cb14-43" tabindex="-1"></a><span class="fu">latent_class_diagnostics</span>(dynamic)<span class="sc">$</span>occupancy</span>
+<span id="cb14-44"><a href="#cb14-44" tabindex="-1"></a><span class="co">#&gt;   n_classes probability</span></span>
+<span id="cb14-45"><a href="#cb14-45" tabindex="-1"></a><span class="co">#&gt; 1         2       0.261</span></span>
+<span id="cb14-46"><a href="#cb14-46" tabindex="-1"></a><span class="co">#&gt; 2         3       0.321</span></span>
+<span id="cb14-47"><a href="#cb14-47" tabindex="-1"></a><span class="co">#&gt; 3         4       0.207</span></span>
+<span id="cb14-48"><a href="#cb14-48" tabindex="-1"></a><span class="co">#&gt; 4         5       0.117</span></span>
+<span id="cb14-49"><a href="#cb14-49" tabindex="-1"></a><span class="co">#&gt; 5         6       0.053</span></span>
+<span id="cb14-50"><a href="#cb14-50" tabindex="-1"></a><span class="co">#&gt; 6         7       0.028</span></span>
+<span id="cb14-51"><a href="#cb14-51" tabindex="-1"></a><span class="co">#&gt; 7         8       0.009</span></span>
+<span id="cb14-52"><a href="#cb14-52" tabindex="-1"></a><span class="co">#&gt; 8         9       0.003</span></span>
+<span id="cb14-53"><a href="#cb14-53" tabindex="-1"></a><span class="co">#&gt; 9        10       0.001</span></span>
+<span id="cb14-54"><a href="#cb14-54" tabindex="-1"></a><span class="fu">recover_classes</span>(dynamic)</span>
+<span id="cb14-55"><a href="#cb14-55" tabindex="-1"></a><span class="co">#&gt;    variable  dgp estimate</span></span>
+<span id="cb14-56"><a href="#cb14-56" tabindex="-1"></a><span class="co">#&gt; 1 n_classes  2.0     3.00</span></span>
+<span id="cb14-57"><a href="#cb14-57" tabindex="-1"></a><span class="co">#&gt; 2 weight[1]  0.6     0.62</span></span>
+<span id="cb14-58"><a href="#cb14-58" tabindex="-1"></a><span class="co">#&gt; 3 weight[2]  0.4     0.32</span></span>
+<span id="cb14-59"><a href="#cb14-59" tabindex="-1"></a><span class="co">#&gt; 4   mu[x,1] -1.0    -0.95</span></span>
+<span id="cb14-60"><a href="#cb14-60" tabindex="-1"></a><span class="co">#&gt; 5   mu[x,2]  2.0     1.82</span></span></code></pre></div>
+<p>The occupancy distribution is wider than under the sparse finite
+prior and assigns most of its probability to three or more classes. This
+reflects the prior, which expects about three occupied classes for 100
+deciders. The two largest classes nevertheless match the two true
+groups, because the superfluous classes contain only a few deciders.</p>
+</div>
+</div>
+<div id="ordered-and-ranked-responses" class="section level2">
+<h2>Ordered and ranked responses</h2>
+<p>Both mechanisms also work for ordered and ranked responses, which the
+vignette <a href="https://loelschlaeger.de/RprobitB/articles/v02_model_variants.html">Model
+specification and variants</a> introduces. The following demonstration
+uses a simulated panel of rankings: 100 deciders order three
+alternatives five times each, with a coefficient that varies normally
+around <code>-1</code>.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>ranked_random <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  rank <span class="sc">~</span> x <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">choice_type =</span> <span class="st">&quot;ranked&quot;</span>,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">random_effects =</span> <span class="st">&quot;x&quot;</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">100</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">n_occasions =</span> <span class="dv">5</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">n_alternatives =</span> <span class="dv">3</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="at">x =</span> <span class="sc">-</span><span class="dv">1</span>), <span class="at">Omega =</span> <span class="fu">matrix</span>(<span class="fl">0.3</span>)),</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">2000</span>,</span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span>,</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>)</span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="fu">summary</span>(ranked_random)</span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; Formula: rank ~ x | 0 | 0 </span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; Samples: 1000 retained per chain, 1 chain</span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt;    variable    dgp   mean   mode     sd rhat ess_bulk</span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt;       mu[x] -1.000 -1.009 -0.974 0.0860 1.08     25.7</span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt;  Omega[x,x]  0.300  0.287  0.246 0.0729 1.09     17.5</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt;  Sigma[B,C]  0.292  0.325  0.325 0.0695 1.01    117.9</span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt;  Sigma[C,C]  0.737  0.635  0.613 0.1159 1.01    121.3</span></span></code></pre></div>
+<p>The summary shows the population mean and variance beside their true
+values. Ordered responses accept the same arguments, and latent classes
+are requested in the same way as above, with
+<code>latent_class_effects</code> and <code>classes</code>.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further reading</h2>
+<p>The vignette <a href="https://loelschlaeger.de/RprobitB/articles/v04_prediction.html">Posterior
+prediction</a> uses the individual coefficients to compute choice
+probabilities for each decider in the fit. The vignette <a href="https://loelschlaeger.de/RprobitB/articles/v05_model_evaluation.html">Bayesian
+model evaluation</a> shows how to decide whether random coefficients
+improve a model.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Allenby1998" class="csl-entry">
+Allenby, Greg M., and Peter E. Rossi. 1998. <span>“Marketing Models of
+Consumer Heterogeneity.”</span> <em>Journal of Econometrics</em> 89
+(1-2): 57–78. <a href="https://doi.org/10.1016/S0304-4076(98)00055-4">https://doi.org/10.1016/S0304-4076(98)00055-4</a>.
+</div>
+<div id="ref-Croissant2020" class="csl-entry">
+Croissant, Yves. 2020. <span>“Estimation of Random Utility Models in
+<span>R</span>: The <span class="nocase">mlogit</span> Package.”</span>
+<em>Journal of Statistical Software</em> 95 (11): 1–41. <a href="https://doi.org/10.18637/jss.v095.i11">https://doi.org/10.18637/jss.v095.i11</a>.
+</div>
+<div id="ref-Dahl2006" class="csl-entry">
+Dahl, David B. 2006. <span>“Model-Based Clustering for Expression Data
+via a Dirichlet Process Mixture Model.”</span> In <em>Bayesian Inference
+for Gene Expression and Proteomics</em>, edited by Kim-Anh Do, Peter
+Müller, and Marina Vannucci. Cambridge University Press. <a href="https://doi.org/10.1017/CBO9780511584589.011">https://doi.org/10.1017/CBO9780511584589.011</a>.
+</div>
+<div id="ref-Escobar1995" class="csl-entry">
+Escobar, Michael D., and Mike West. 1995. <span>“Bayesian Density
+Estimation and Inference Using Mixtures.”</span> <em>Journal of the
+American Statistical Association</em> 90 (430): 577–88. <a href="https://doi.org/10.1080/01621459.1995.10476550">https://doi.org/10.1080/01621459.1995.10476550</a>.
+</div>
+<div id="ref-FruehwirthSchnatter2019" class="csl-entry">
+Frühwirth-Schnatter, Sylvia, and Gertraud Malsiner-Walli. 2019.
+<span>“From Here to Infinity: Sparse Finite Versus Dirichlet Process
+Mixtures in Model-Based Clustering.”</span> <em>Advances in Data
+Analysis and Classification</em> 13 (1): 33–64. <a href="https://doi.org/10.1007/s11634-018-0329-y">https://doi.org/10.1007/s11634-018-0329-y</a>.
+</div>
+<div id="ref-Greene2003" class="csl-entry">
+Greene, William H., and David A. Hensher. 2003. <span>“A Latent Class
+Model for Discrete Choice Analysis: Contrasts with Mixed Logit.”</span>
+<em>Transportation Research Part B: Methodological</em> 37 (8): 681–98.
+<a href="https://doi.org/10.1016/S0191-2615(02)00046-2">https://doi.org/10.1016/S0191-2615(02)00046-2</a>.
+</div>
+<div id="ref-Huber2001" class="csl-entry">
+Huber, Joel, and Kenneth Train. 2001. <span>“On the Similarity of
+Classical and Bayesian Estimates of Individual Mean Partworths.”</span>
+<em>Marketing Letters</em> 12 (3): 259–69. <a href="https://doi.org/10.1023/A:1011120928698">https://doi.org/10.1023/A:1011120928698</a>.
+</div>
+<div id="ref-Kamakura1989" class="csl-entry">
+Kamakura, Wagner A., and Gary J. Russell. 1989. <span>“A Probabilistic
+Choice Model for Market Segmentation and Elasticity Structure.”</span>
+<em>Journal of Marketing Research</em> 26 (4): 379–90.
+</div>
+<div id="ref-Neal2000" class="csl-entry">
+Neal, Radford M. 2000. <span>“Markov Chain Sampling Methods for
+Dirichlet Process Mixture Models.”</span> <em>Journal of Computational
+and Graphical Statistics</em> 9 (2): 249–65. <a href="https://doi.org/10.1080/10618600.2000.10474879">https://doi.org/10.1080/10618600.2000.10474879</a>.
+</div>
+<div id="ref-Oelschlaeger2026c" class="csl-entry">
+Oelschläger, Lennart. 2026. <span>“Overcoming Challenges in Modeling
+Choice Behavior Heterogeneity.”</span> PhD thesis, Bielefeld University.
+<a href="https://pub.uni-bielefeld.de/record/3014719">https://pub.uni-bielefeld.de/record/3014719</a>.
+</div>
+<div id="ref-Oelschlaeger2021" class="csl-entry">
+Oelschläger, Lennart, and Dietmar Bauer. 2021. <span>“Bayes Estimation
+of Latent Class Mixed Multinomial Probit Models.”</span> <em>Proceedings
+of the 100th Annual Meeting of the Transportation Research Board</em>
+(Washington, DC). <a href="https://trid.trb.org/view/1759753">https://trid.trb.org/view/1759753</a>.
+</div>
+<div id="ref-Papastamoulis2010" class="csl-entry">
+Papastamoulis, Panagiotis, and George Iliopoulos. 2010. <span>“An
+Artificial Allocations Based Solution to the Label Switching Problem in
+<span>Bayesian</span> Analysis of Mixtures of Distributions.”</span>
+<em>Journal of Computational and Graphical Statistics</em> 19 (2):
+313–31. <a href="https://doi.org/10.1198/jcgs.2010.09008">https://doi.org/10.1198/jcgs.2010.09008</a>.
+</div>
+<div id="ref-Rousseau2011" class="csl-entry">
+Rousseau, Judith, and Kerrie Mengersen. 2011. <span>“Asymptotic
+Behaviour of the Posterior Distribution in Overfitted Mixture
+Models.”</span> <em>Journal of the Royal Statistical Society: Series B
+(Statistical Methodology)</em> 73 (5): 689–710. <a href="https://doi.org/10.1111/j.1467-9868.2011.00781.x">https://doi.org/10.1111/j.1467-9868.2011.00781.x</a>.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

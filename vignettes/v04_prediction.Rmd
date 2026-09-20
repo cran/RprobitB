@@ -1,0 +1,460 @@
+---
+title: "Posterior prediction"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Posterior prediction}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: ../inst/REFERENCES.bib
+link-citations: true
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE, comment = "#>", fig.width = 7, fig.height = 4,
+  fig.align = "center"
+)
+```
+
+A fitted choice model answers questions about choice probabilities: which of
+two train trips a traveler is likely to book, how the support for a
+wind-power project changes with the compensation, and how well the model
+predicts the choices of deciders that were not used for estimation. In the
+probit model introduced in the vignette [Get started with RprobitB][v01],
+the choice probability of an alternative is the probability that its latent
+utility exceeds the utilities of the other alternatives, and it depends on
+the covariates of the occasion and on the parameters. `predict()` evaluates
+these probabilities under every retained posterior draw and averages them,
+so that the predictions account for the posterior uncertainty about the
+parameters [@Gelman1996]. This vignette covers predictions for the
+population and for individual deciders, scenarios, out-of-sample
+prediction, residuals, and marginal effects. The examples use data sets of
+the **mlogit** package [@Croissant2020], the **choicedata** package
+[@Oelschlaeger2026a], and the **MASS** package [@VenablesRipley2002].
+
+```{r setup}
+library(RprobitB)
+set.seed(1)
+```
+
+## A random price coefficient
+
+The `Train` data of the **mlogit** package contain about a dozen choices by
+each of 235 Dutch travelers between two hypothetical train trips that differ
+in price, travel time, number of changes, and comfort class [@BenAkiva1993].
+As in the vignette [Get started with RprobitB][v01], the prices are converted
+to euro and the travel times to hours. That vignette fits one price
+coefficient for all travelers. Here the price coefficient is a normal random
+effect, as introduced in the vignette
+[Modeling preference heterogeneity][v03]: every traveler has an individual
+price coefficient, drawn from a normal population distribution whose mean
+and variance are estimated. The fit uses the first 100 travelers. The
+individual draws are saved because the conditional predictions below use
+them, and thinning keeps 100 draws in total, which keeps the predictions
+fast.
+
+```{r fit}
+data("Train", package = "mlogit")
+Train$price_A <- Train$price_A / 100 / 2.20371
+Train$price_B <- Train$price_B / 100 / 2.20371
+Train$time_A <- Train$time_A / 60
+Train$time_B <- Train$time_B / 60
+train_small <- Train[Train$id %in% unique(Train$id)[1:100], ]
+model <- fit(
+  choice ~ price + time + change + factor(comfort) | 0,
+  data = train_small,
+  random_effects = "price",
+  column_decider = "id",
+  column_occasion = "choiceid",
+  iterations = 1500,
+  warmup = 750,
+  thin = 15,
+  chains = 2,
+  save_individual_draws = TRUE,
+  progress = FALSE
+)
+summary(model)
+```
+
+`mu[price]` and `Omega[price,price]` are the mean and the variance of the
+price coefficient across the population. Price sensitivity differs
+considerably between travelers, which the predictions below take into
+account.
+
+## Population predictions
+
+By default, `predict()` returns one row per choice occasion with the
+identifiers, the most probable alternative in `.prediction`, and the
+posterior mean probability of every alternative. These population
+predictions integrate over the estimated population distribution of the
+random coefficient, so they apply to any traveler from the population.
+
+```{r population}
+population <- predict(model)
+head(population)
+```
+
+`uncertainty = TRUE` adds the posterior standard deviation and an
+equal-tailed credible interval of every probability, here at the 90% level.
+The intervals reflect the posterior uncertainty about the parameters.
+
+```{r uncertainty}
+head(predict(model, uncertainty = TRUE, level = 0.9))
+```
+
+## Conditional predictions for fitted deciders
+
+The dozen choices of a traveler are informative about their individual
+price coefficient. `coef(level = "individual")` returns the posterior mean
+of every traveler's coefficient, and `predict(type = "conditional")` uses
+the individual draws instead of the population distribution. Conditional
+predictions exist only for the deciders in the fitted data, and they are
+usually sharper because they use the decider's own choices. This partial
+pooling is the main argument for hierarchical Bayesian choice models
+[@Allenby1998; @Huber2001].
+
+```{r conditional}
+head(coef(model, level = "individual"))
+conditional <- predict(model, type = "conditional")
+head(conditional)
+```
+
+The hit rate, the share of correctly predicted choices in the fitted data,
+is one measure of the gain:
+
+```{r accuracy}
+observed <- model.frame(model)$choice
+c(
+  population = mean(population$.prediction == observed, na.rm = TRUE),
+  conditional = mean(conditional$.prediction == observed, na.rm = TRUE)
+)
+```
+
+The hit rate evaluates the
+predictions at a single threshold, a probability of one half. An ROC curve
+compares them at every threshold: as the threshold for predicting trip `B`
+decreases from one to zero, the curve plots the share of `B` choices
+predicted correctly against the share of `A` choices wrongly predicted as
+`B`. The **plotROC** package [@Sachs2017] draws the curves with **ggplot2**
+[@Wickham2016].
+
+```{r roc, fig.width=6, fig.height=4}
+library(ggplot2)
+library(plotROC)
+roc_data <- rbind(
+  data.frame(
+    prediction = "population", chose_B = as.integer(observed == "B"),
+    probability = population$probability_B
+  ),
+  data.frame(
+    prediction = "conditional", chose_B = as.integer(observed == "B"),
+    probability = conditional$probability_B
+  )
+)
+roc_data$prediction <- factor(
+  roc_data$prediction, levels = c("population", "conditional")
+)
+roc_plot <- ggplot(
+  roc_data, aes(d = chose_B, m = probability, color = prediction)
+) +
+  geom_roc(n.cuts = 0) +
+  style_roc()
+roc_plot
+```
+
+The conditional curve lies above the population curve and therefore has the
+larger area under the curve, which equals one for a perfect and one half for
+an uninformative prediction.
+
+## Scenario analysis in a stated choice experiment
+
+A scenario predicts the choice probabilities for modified attributes. Near 
+Setskog in Norway, 308
+residents were asked six times to choose between two plans for a proposed
+wind-power project and the status quo without the project, alternative `1`
+[@Dugstad2024]. The plans varied the number and height of the turbines, the
+routing of the power line, and an annual reduction in municipal taxes
+offered as compensation. The study also measured each respondent's
+collective psychological ownership of the affected area, a standardized
+score of how strongly they feel that the landscape belongs to the residents.
+The score does not vary across alternatives and therefore enters the second
+part of the formula, which gives it one coefficient per plan relative to the
+status quo. The fit uses the first 150 respondents.
+
+```{r wind-formula}
+wind_formula <- choice ~ turbines + height + powerline + compensation |
+  psychological_ownership
+```
+
+```{r wind}
+data("wind_power_choice", package = "choicedata")
+respondents <- unique(wind_power_choice$respondent)[1:150]
+wind_small <- wind_power_choice[
+  wind_power_choice$respondent %in% respondents,
+]
+wind <- fit(
+  formula = wind_formula,
+  data = wind_small,
+  column_decider = "respondent",
+  column_occasion = "occasion",
+  iterations = 10000,
+  warmup = 5000,
+  thin = 10,
+  chains = 1,
+  progress = FALSE
+)
+coef(wind)[c("beta[compensation]", "beta[psychological_ownership_2]")]
+```
+
+The compensation coefficient is positive and the ownership coefficient
+negative: compensation makes a plan more attractive, and residents with a
+stronger feeling of ownership are less willing to leave the status quo. 
+
+What would happen if the municipality doubled the compensation?
+`newdata` accepts a data frame in the layout of the fitted data, with or
+without the response column. The scenario below doubles the compensation of
+both plans in the first four choice tasks and compares the probability of
+the status quo before and after.
+
+```{r scenario}
+tasks <- model.frame(wind)[1:4, ]
+tasks$choice <- NULL
+scenario <- tasks
+scenario$compensation_2 <- 2 * scenario$compensation_2
+scenario$compensation_3 <- 2 * scenario$compensation_3
+cbind(
+  before = predict(wind, newdata = tasks)$probability_1,
+  after = predict(wind, newdata = scenario)$probability_1
+)
+```
+
+Doubling the compensation lowers the probability of the status quo in all
+four tasks.
+
+## Out-of-sample prediction and calibration
+
+Predictive performance is best judged on deciders that were not used for
+estimation [@Vehtari2017]. In an arena tournament on the chess server
+Lichess, a player may go Berserk at the start of a game: the clock is
+halved, and a win earns one extra tournament point. Players on a winning
+streak collect double points, so a loss is more costly for them. The
+`lichess_berserk_choice` data of the **choicedata** package record this
+decision for 5852 players in the Lichess Yearly Rapid Arena of April 2026,
+game by game, together with the playing color, the player's rating, the
+rating difference to the opponent, the remaining tournament time, and
+whether the player was on a streak. All covariates describe the game and
+are constant across the two alternatives, so they enter the second part of
+the formula, which gives each of them one coefficient for the alternative
+`TRUE` relative to `FALSE`, for example `beta[rating_TRUE]`. Logical
+covariates appear as dummy variables such as `streakTRUE`.
+
+```{r berserk-formula}
+berserk_formula <- berserk ~ 0 | white + rating + ratingDifference +
+  minutesRemaining + streak
+```
+
+The fit uses the games of the first 300 players. `train_test()` splits them by 
+decider: `test_number = 60` puts all games of 60 players into the test set and
+the games of the other players into the training set.
+
+```{r lichess}
+data("lichess_berserk_choice", package = "choicedata")
+players <- unique(lichess_berserk_choice$deciderID)
+first_players <- lichess_berserk_choice$deciderID %in% players[1:300]
+split <- train_test(lichess_berserk_choice[first_players, ], test_number = 60)
+berserk <- fit(
+  formula = berserk_formula,
+  data = split$train,
+  column_occasion = "occasionID",
+  iterations = 1000,
+  warmup = 500,
+  chains = 2,
+  progress = FALSE
+)
+coef(berserk)
+```
+
+The rating coefficient is positive: stronger players go Berserk more often.
+The coefficients of the streak and of the remaining time are negative. How well 
+does the model predict the games of the 60
+players in the test set? `newdata` takes the test set as it is, and the
+predicted alternative is compared with the observed one.
+
+```{r holdout}
+holdout_prediction <- predict(berserk, newdata = split$test)
+holdout_choice <- as.character(split$test$berserk)
+c(
+  accuracy = mean(holdout_prediction$.prediction == holdout_choice),
+  share_berserk = mean(split$test$berserk)
+)
+```
+
+The hit rate is only slightly higher than the share of games without
+Berserk, which the rule that never predicts Berserk would already reach, so
+the hit rate alone is a weak criterion for an unbalanced binary response. A
+calibration analysis assesses the predicted probabilities instead. It
+groups the hold-out games by predicted Berserk probability in intervals of
+width 0.1 and compares the mean predicted probability with the observed
+Berserk rate in each group; groups with fewer than 50 games are dropped.
+
+```{r calibration}
+predicted <- holdout_prediction$probability_TRUE
+bins <- cut(predicted, breaks = seq(0, 1, by = 0.1))
+calibration <- data.frame(
+  games = as.vector(table(bins)),
+  predicted = as.vector(tapply(predicted, bins, mean)),
+  observed = as.vector(tapply(split$test$berserk, bins, mean)),
+  row.names = levels(bins)
+)
+large <- calibration[calibration$games >= 50, ]
+round(large, 2)
+```
+
+The calibration plot shows the same table. Points on the diagonal mean that
+the predicted probability equals the observed rate, and the point sizes are
+proportional to the number of games in a group.
+
+```{r calibration-plot, fig.width=5, fig.height=5}
+plot(
+  large$predicted, large$observed,
+  xlim = c(0, 1), ylim = c(0, 1), pch = 19,
+  cex = 0.5 + 2 * large$games / max(large$games),
+  xlab = "predicted Berserk probability",
+  ylab = "observed Berserk rate"
+)
+abline(0, 1, lwd = 2, col = "grey50")
+```
+
+The observed Berserk rate rises with the predicted probability, so the model
+orders the games by their Berserk rate. In the group with the highest
+predictions, the observed rate exceeds the predicted probability, so the
+model underpredicts Berserk for these games.
+
+## Residuals
+
+`residuals()` returns the observed choice indicators minus the posterior
+mean probabilities, one row per choice occasion and one column per
+alternative. The rows of observed occasions sum to zero, and occasions with
+a missing response yield `NA`. A single residual is uninformative, because
+the indicator is zero or one while the probability lies in between, so the
+residuals are averaged over groups of occasions. The average residual per
+traveler shows whose choices the model reproduces:
+
+```{r residuals}
+model_residuals <- residuals(model)
+head(model_residuals)
+by_decider <- tapply(
+  model_residuals[, "A"], model.frame(model)$id, mean, na.rm = TRUE
+)
+round(quantile(by_decider, c(0, 0.25, 0.5, 0.75, 1)), 3)
+```
+
+Most travelers have an average residual close to zero. For the travelers at
+the extremes, the model predicts trip `A` too often or too rarely across all
+their questions.
+Grouping by a covariate checks the functional form instead, here by the
+price of trip `A` in four groups of equal size:
+
+```{r residuals-covariate}
+price_group <- cut(
+  model.frame(model)$price_A,
+  breaks = quantile(model.frame(model)$price_A, seq(0, 1, 0.25)),
+  include.lowest = TRUE
+)
+round(tapply(model_residuals[, "A"], price_group, mean, na.rm = TRUE), 3)
+```
+
+All four group averages are close to zero. A systematic pattern, for
+example positive residuals at both ends, would indicate a nonlinear price
+effect or an unmodeled preference class.
+
+## Marginal effects
+
+How much does one euro more change the probability of booking a trip? The
+coefficients do not answer this directly, because the probit link is
+nonlinear: the same change of a covariate moves the probability most where
+the alternatives are close in utility and little where one alternative
+dominates. `interpret()` therefore differentiates the predicted
+probabilities numerically. `type = "mea"` evaluates the derivative for one
+occasion whose covariates equal the observed averages, reported in the
+column `at`. `type = "ame"` evaluates the derivative for every observed
+occasion and averages, which weights the occasions as they occur in the data. 
+Both use every posterior draw and
+therefore come with credible intervals.
+
+```{r marginal-effects}
+interpret(model, type = "mea")
+average_effects <- interpret(model, type = "ame")
+average_effects
+```
+
+Averaged over the observed occasions, one euro more
+lowers the probability of a trip by about
+`r round(-100 * average_effects$mean[average_effects$covariate == "price"][1])`
+percentage points and one hour more by about
+`r round(-100 * average_effects$mean[average_effects$covariate == "time"][1])`
+percentage points. 
+
+The `at` argument replaces the averages of selected
+covariates. A much cheaper trip `B` moves its probability close to one,
+where one euro more changes it only marginally:
+
+```{r marginal-effects-at}
+interpret(model, type = "mea", at = c(price_A = 30, price_B = 10))
+```
+
+## Predictions for ordered responses
+
+An ordered model compares one latent utility per occasion with increasing
+thresholds that partition it into the levels of the response, as the
+vignette [Model specification and variants][v02] describes. For such a
+model, `predict()` returns the probability of every level. The smoking model
+of that vignette predicts how often a student smokes from their age and
+exercise habits.
+
+```{r ordered-prediction}
+data("survey", package = "MASS")
+smoking <- fit(
+  Smoke ~ Age + Exer | 0,
+  data = survey,
+  alternatives = c("Never", "Occas", "Regul", "Heavy"),
+  choice_type = "ordered",
+  column_decider = NULL,
+  chains = 1
+)
+head(predict(smoking))
+```
+
+Every row has four probabilities that sum to one, and `.prediction` names
+the most probable level. Because most students never smoke, this level is
+the most probable for almost every student, and the probabilities are more
+informative than the predicted level. A
+scenario works as before. Ten more years of age shift the probability of
+never smoking of the first three students:
+
+```{r ordered-scenario}
+students <- model.frame(smoking)[1:3, ]
+students$Smoke <- NULL
+older <- students
+older$Age <- older$Age + 10
+cbind(
+  before = predict(smoking, newdata = students)$probability_Never,
+  after = predict(smoking, newdata = older)$probability_Never
+)
+```
+
+The probability rises for all three students, in the direction implied by
+the negative age coefficient.
+
+## Further reading
+
+Predictions describe what a model expects, not whether it is better than
+another model. That comparison is the subject of the vignette
+[Bayesian model evaluation][v05].
+
+[v01]: https://loelschlaeger.de/RprobitB/articles/v01_get_started.html
+[v02]: https://loelschlaeger.de/RprobitB/articles/v02_model_variants.html
+[v03]: https://loelschlaeger.de/RprobitB/articles/v03_heterogeneity.html
+[v05]: https://loelschlaeger.de/RprobitB/articles/v05_model_evaluation.html
+
+## References

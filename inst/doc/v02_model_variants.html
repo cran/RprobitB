@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Model specification and variants</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Model specification and variants</h1>
+
+
+
+<p>This vignette describes how to specify a probit choice model with
+<code>fit()</code>. It covers the normalization of the utility scale and
+the prior distribution, which every fit involves, and then the model
+variants: the three types of covariates and the alternative-specific
+constants, choice sets that differ between occasions, and ordered and
+ranked responses. Preference heterogeneity between deciders is the
+subject of the vignette <a href="https://loelschlaeger.de/RprobitB/articles/v03_heterogeneity.html">Modeling
+preference heterogeneity</a>, and <span class="citation">Oelschläger (<a href="#ref-Oelschlaeger2026c">2026</a>)</span> gives the methodological
+background. From the covariate types onward, each section first fits the
+variant to simulated data and then to a data set of the
+<strong>AER</strong> package <span class="citation">(<a href="#ref-Kleiber2008">Kleiber and Zeileis 2008</a>)</span>, the
+<strong>MASS</strong> package <span class="citation">(<a href="#ref-VenablesRipley2002">Venables and Ripley 2002</a>)</span>, or
+the <strong>mlogit</strong> package <span class="citation">(<a href="#ref-Croissant2020">Croissant 2020</a>)</span>. Without data,
+<code>fit()</code> simulates the requested model before estimating it,
+and <code>summary()</code> prints the true values in a <code>dgp</code>
+column beside the posterior summaries, converted to the normalization of
+the fit.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(RprobitB)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1</span>)</span></code></pre></div>
+<div id="normalization" class="section level2">
+<h2>Normalization</h2>
+<p>The probit model introduced in the vignette <a href="https://loelschlaeger.de/RprobitB/articles/v01_get_started.html">Get
+started with RprobitB</a> assigns every alternative <span class="math inline">\(j\)</span> at occasion <span class="math inline">\(t\)</span> of decider <span class="math inline">\(n\)</span> the latent utility <span class="math inline">\(U_{ntj} = X_{ntj}^\top \beta_n +
+\epsilon_{ntj}\)</span> with jointly normal errors <span class="math inline">\(\epsilon_{nt} \sim \mathrm{N}(0, \Sigma)\)</span>,
+and the decider chooses the alternative with the largest utility. The
+choice probability of an alternative is the probability that its utility
+exceeds the utilities of all others. These probabilities are invariant
+to adding a constant to all utilities and to multiplying all utilities
+by a positive number, so neither the level nor the scale of the
+utilities is identified. <strong>RprobitB</strong> therefore works with
+utility differences relative to a base alternative, by default the first
+in alphabetical order, and fixes one parameter through
+<code>scale</code>:</p>
+<ul>
+<li><code>scale = NULL</code> fixes the error variance of the first
+utility difference to one. This is the default. The covariance matrix of
+the error differences is reported as
+<code>Sigma[&lt;alternative&gt;,&lt;alternative&gt;]</code>, with rows
+and columns named by the alternatives other than the base. For three
+alternatives <code>A</code>, <code>B</code>, and <code>C</code> with
+base <code>A</code>, its entries are <code>Sigma[B,B]</code>,
+<code>Sigma[C,B]</code>, and <code>Sigma[C,C]</code>.</li>
+<li><code>scale = c(z = -1)</code> fixes the coefficient of
+<code>z</code> to <code>-1</code> instead, so that all other
+coefficients are measured in units of it. With a price coefficient fixed
+in this way, the other coefficients are willingness-to-pay values.</li>
+</ul>
+<p>The sampler draws all parameters without restriction and rescales
+every retained draw afterwards. Variables that the normalization fixes
+remain in the draws but are omitted from <code>summary()</code>,
+<code>coef()</code>, and <code>vcov()</code>.</p>
+<p>The following demonstration shows the effect of the normalization on
+the reported values. We simulate data with coefficients <code>1</code>
+for <code>x</code> and <code>-0.5</code> for <code>z</code> and fit them
+under the default scale. Simulated alternatives are labeled with capital
+letters unless <code>alternatives</code> names them, here <code>A</code>
+and <code>B</code>, and <code>A</code> is the base.
+<code>update()</code> then refits the same simulated data with the
+coefficient of <code>z</code> fixed to <code>-1</code>, so only the
+normalization differs between the two fits.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>scale_default <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  choice <span class="sc">~</span> x <span class="sc">+</span> z <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="at">x =</span> <span class="dv">1</span>, <span class="at">z =</span> <span class="sc">-</span><span class="fl">0.5</span>)),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">300</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>)</span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="fu">summary</span>(scale_default)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x + z | 0 | 0 </span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt;  variable  dgp   mean   mode     sd rhat ess_bulk</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt;   beta[x]  1.0  1.124  1.079 0.1055    1     36.2</span></span>
+<span id="cb2-13"><a href="#cb2-13" tabindex="-1"></a><span class="co">#&gt;   beta[z] -0.5 -0.617 -0.604 0.0877    1     51.1</span></span>
+<span id="cb2-14"><a href="#cb2-14" tabindex="-1"></a>scale_z <span class="ot">&lt;-</span> <span class="fu">update</span>(scale_default, <span class="at">scale =</span> <span class="fu">c</span>(<span class="at">z =</span> <span class="sc">-</span><span class="dv">1</span>))</span>
+<span id="cb2-15"><a href="#cb2-15" tabindex="-1"></a><span class="fu">summary</span>(scale_z)</span>
+<span id="cb2-16"><a href="#cb2-16" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb2-17"><a href="#cb2-17" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x + z | 0 | 0 </span></span>
+<span id="cb2-18"><a href="#cb2-18" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb2-19"><a href="#cb2-19" tabindex="-1"></a><span class="co">#&gt;    variable dgp mean mode    sd rhat ess_bulk</span></span>
+<span id="cb2-20"><a href="#cb2-20" tabindex="-1"></a><span class="co">#&gt;     beta[x]   2 1.87 1.80 0.229 1.01      115</span></span>
+<span id="cb2-21"><a href="#cb2-21" tabindex="-1"></a><span class="co">#&gt;  Sigma[B,B]   4 2.94 2.33 0.932 1.04       47</span></span></code></pre></div>
+<p>Under the default scale, the <code>dgp</code> column shows the
+coefficients as specified. <code>Sigma[B,B]</code>, the error variance
+of the utility difference between alternative <code>B</code> and the
+base <code>A</code>, is fixed to one and therefore not listed. Under the
+coefficient normalization, <code>beta[z]</code> is fixed to
+<code>-1</code> instead of its true <code>-0.5</code>, so all utilities
+are multiplied by <code>2</code>: the true <code>beta[x]</code> becomes
+<code>2</code> and the true error variance <code>4</code>.
+<code>summary()</code> converts the true values to the normalization of
+the fit, so the <code>dgp</code> column remains comparable.</p>
+<p>The convergence diagnostics of the two tables differ because
+<code>update()</code> runs the sampler again and because the rescaled
+variables are different functions of the draws: <code>beta[x]</code> is
+now a ratio of two coefficients, which mixes differently than a single
+coefficient.</p>
+</div>
+<div id="prior-distribution" class="section level2">
+<h2>Prior distribution</h2>
+<p><strong>RprobitB</strong> estimates every model with a Gibbs sampler,
+which draws each block of parameters in turn from its conditional
+posterior distribution given the other parameters and the latent
+utilities. The prior is conjugate for every block, so each conditional
+posterior belongs to the same family as the prior. Fixed coefficients
+and class means have normal priors, covariance matrices have inverse
+Wishart priors, class weights have a Dirichlet prior, and the
+log-increments between ordered thresholds have a normal prior. The
+section “Prior distribution” of <code>?fit</code> lists all components
+with their defaults, which are weakly informative for coefficients and
+covariances. Single components are overridden through a named list, and
+the complete prior of a fit is stored in its <code>prior</code>
+component.</p>
+<p>The following demonstration simulates 100 deciders with a true
+coefficient of <code>-1</code> under the default prior and then refits
+the same data under two priors with mean <code>1</code>: a moderate one
+with variance <code>0.5</code> and a tight one with variance
+<code>0.01</code>.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>default_prior <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  choice <span class="sc">~</span> x <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="at">x =</span> <span class="sc">-</span><span class="dv">1</span>)),</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>default_prior<span class="sc">$</span>prior</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; $fixed_mean</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="co">#&gt; [1] 0</span></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; $fixed_covariance</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; [1,]   10</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; $error_covariance_df</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; [1] 3</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; $error_covariance_scale</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt;      [,1]</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; [1,]    1</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="fu">summary</span>(default_prior)</span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | 0 | 0 </span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt;  variable dgp  mean   mode    sd rhat ess_bulk</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt;   beta[x]  -1 -1.02 -0.986 0.163 1.02     46.3</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>moderate_prior <span class="ot">&lt;-</span> <span class="fu">update</span>(</span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>  default_prior, <span class="at">prior =</span> <span class="fu">list</span>(<span class="at">fixed_mean =</span> <span class="dv">1</span>, <span class="at">fixed_covariance =</span> <span class="fu">matrix</span>(<span class="fl">0.5</span>))</span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a>)</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a>tight_prior <span class="ot">&lt;-</span> <span class="fu">update</span>(</span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>  default_prior, <span class="at">prior =</span> <span class="fu">list</span>(<span class="at">fixed_mean =</span> <span class="dv">1</span>, <span class="at">fixed_covariance =</span> <span class="fu">matrix</span>(<span class="fl">0.01</span>))</span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a>)</span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="fu">data.frame</span>(</span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a>  <span class="at">variable =</span> <span class="st">&quot;beta[x]&quot;</span>, <span class="at">dgp =</span> <span class="sc">-</span><span class="dv">1</span>, <span class="at">default =</span> <span class="fu">coef</span>(default_prior),</span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a>  <span class="at">moderate =</span> <span class="fu">coef</span>(moderate_prior), <span class="at">tight =</span> <span class="fu">coef</span>(tight_prior),</span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a>  <span class="at">row.names =</span> <span class="cn">NULL</span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a>)</span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt;   variable dgp   default   moderate     tight</span></span>
+<span id="cb3-38"><a href="#cb3-38" tabindex="-1"></a><span class="co">#&gt; 1  beta[x]  -1 -1.016823 -0.9577477 0.1240365</span></span></code></pre></div>
+<p>The table compares the posterior means under the three priors with
+the true value. The moderate prior shifts the posterior mean only
+slightly towards the prior mean. The tight prior has a standard
+deviation of <code>0.1</code> around <code>1</code>, outweighs the data,
+and pulls the posterior mean far away from the true value. A prior on a
+coefficient is unproblematic as long as its variance reflects the actual
+uncertainty about the coefficient.</p>
+</div>
+<div id="covariate-types-and-alternative-specific-constants" class="section level2">
+<h2>Covariate types and alternative-specific constants</h2>
+<p>The formula <code>choice ~ A | B | C</code> distinguishes three kinds
+of covariates: attributes of the alternatives with one shared
+coefficient (<code>A</code>), characteristics of the decider with
+alternative-specific coefficients (<code>B</code>), and attributes of
+the alternatives with alternative-specific coefficients
+(<code>C</code>). Alternative-specific constants are included by default
+and removed with <code>0</code> in the second part. The following
+demonstration simulates all three types at once, and
+<code>summary()</code> shows the posterior summaries beside the true
+values.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>covariate_types <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  choice <span class="sc">~</span> x <span class="sc">|</span> z <span class="sc">|</span> w,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">500</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>    <span class="at">x =</span> <span class="fl">0.5</span>, <span class="at">z_B =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">ASC_B =</span> <span class="fl">0.25</span>, <span class="at">w_A =</span> <span class="sc">-</span><span class="fl">0.5</span>, <span class="at">w_B =</span> <span class="fl">0.5</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  )),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="fu">summary</span>(covariate_types)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | z | w </span></span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a><span class="co">#&gt;     variable   dgp   mean   mode     sd rhat ess_bulk</span></span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a><span class="co">#&gt;      beta[x]  0.50  0.510  0.512 0.0593 1.01       87</span></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="co">#&gt;    beta[z_B] -0.50 -0.512 -0.527 0.0730 1.01      117</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="co">#&gt;  beta[ASC_B]  0.25  0.234  0.236 0.0680 1.01      147</span></span>
+<span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a><span class="co">#&gt;    beta[w_A] -0.50 -0.433 -0.427 0.0649 1.00      160</span></span>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a><span class="co">#&gt;    beta[w_B]  0.50  0.306  0.282 0.0702 1.00      146</span></span></code></pre></div>
+<p>The summary lists the shared coefficient of <code>x</code>, the
+coefficient of <code>z</code> and the constant of alternative
+<code>B</code>, and the two alternative-specific coefficients of
+<code>w</code>, each beside its true value. <code>base</code> selects
+the alternative against which the alternative-specific coefficients are
+measured, by default the first in alphabetical order, here
+<code>A</code>. Switching the base to <code>B</code> changes only the
+parameterization, not the model:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>base_b <span class="ot">&lt;-</span> <span class="fu">update</span>(covariate_types, <span class="at">base =</span> <span class="st">&quot;B&quot;</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">coef</span>(base_b)[<span class="fu">c</span>(<span class="st">&quot;beta[x]&quot;</span>, <span class="st">&quot;beta[z_A]&quot;</span>, <span class="st">&quot;beta[ASC_A]&quot;</span>)]</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a><span class="co">#&gt;     beta[x]   beta[z_A] beta[ASC_A] </span></span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="co">#&gt;   0.5193362   0.5230973  -0.2385689</span></span></code></pre></div>
+<p>The shared coefficient of <code>x</code> is unchanged up to Monte
+Carlo error, while the coefficient of <code>z</code> and the constant
+now describe alternative <code>A</code> relative to <code>B</code> and
+therefore change sign.</p>
+<p>In 1987, 210 travelers between Sydney and Melbourne reported which of
+four modes they had taken: air, train, bus, or car. The
+<code>TravelMode</code> data of the <strong>AER</strong> package <span class="citation">(<a href="#ref-Kleiber2008">Kleiber and Zeileis
+2008</a>)</span> are in long format with one row per mode and a
+<code>&quot;yes&quot;</code>/<code>&quot;no&quot;</code> indicator of the chosen mode, which
+<code>fit()</code> expects as a logical or <code>0</code>/<code>1</code>
+variable. Terminal waiting time (<code>wait</code>), in-vehicle cost
+(<code>vcost</code>), and travel time (<code>travel</code>) vary across
+modes and enter as type <code>A</code>. Household income and the size of
+the traveling party describe the traveler and enter as type
+<code>B</code>, with the alternative-specific constants included by
+default. Cost and income are converted from Australian dollars to
+euro.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>travel_formula <span class="ot">&lt;-</span> choice <span class="sc">~</span> wait <span class="sc">+</span> vcost <span class="sc">+</span> travel <span class="sc">|</span> income <span class="sc">+</span> size</span></code></pre></div>
+<p>The first alternative in alphabetical order, <code>air</code>, is the
+base, so the constants and the coefficients of income and party size
+describe the other modes relative to flying.</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;TravelMode&quot;</span>, <span class="at">package =</span> <span class="st">&quot;AER&quot;</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>TravelMode<span class="sc">$</span>choice <span class="ot">&lt;-</span> TravelMode<span class="sc">$</span>choice <span class="sc">==</span> <span class="st">&quot;yes&quot;</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>TravelMode<span class="sc">$</span>vcost <span class="ot">&lt;-</span> TravelMode<span class="sc">$</span>vcost <span class="sc">/</span> <span class="fl">1.6196</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>TravelMode<span class="sc">$</span>income <span class="ot">&lt;-</span> TravelMode<span class="sc">$</span>income <span class="sc">/</span> <span class="fl">1.6196</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>travel <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">formula =</span> travel_formula,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">data =</span> TravelMode,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">format =</span> <span class="st">&quot;long&quot;</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="st">&quot;individual&quot;</span>,</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  <span class="at">column_alternative =</span> <span class="st">&quot;mode&quot;</span>,</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">6000</span>,</span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">3000</span>,</span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  <span class="at">thin =</span> <span class="dv">30</span>,</span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>)</span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a><span class="fu">summary</span>(travel)</span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ wait + vcost + travel | income + size | 0 </span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a><span class="co">#&gt; Samples: 100 retained per chain, 2 chains</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a><span class="co">#&gt;            variable     mean     mode       sd  rhat ess_bulk</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a><span class="co">#&gt;          beta[wait] -0.04013 -0.04029 0.006254 1.027     78.3</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a><span class="co">#&gt;         beta[vcost] -0.00890 -0.00985 0.005978 0.996    168.7</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a><span class="co">#&gt;        beta[travel] -0.00219 -0.00225 0.000482 0.995    177.8</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a><span class="co">#&gt;    beta[income_bus] -0.02164 -0.02217 0.012442 1.004    160.9</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a><span class="co">#&gt;    beta[income_car] -0.00865 -0.01092 0.012088 0.994    190.2</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a><span class="co">#&gt;  beta[income_train] -0.05497 -0.05135 0.013880 1.002    157.8</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a><span class="co">#&gt;      beta[size_bus]  0.30353  0.25372 0.168444 1.008    133.8</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a><span class="co">#&gt;      beta[size_car]  0.44195  0.46840 0.141919 1.007    149.8</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a><span class="co">#&gt;    beta[size_train]  0.52959  0.53249 0.153874 1.009    150.6</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a><span class="co">#&gt;       beta[ASC_bus] -0.24083 -0.12344 0.523311 1.001    112.9</span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="co">#&gt;       beta[ASC_car] -2.27621 -2.07970 0.710476 1.003     81.6</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a><span class="co">#&gt;     beta[ASC_train]  0.18447  0.32307 0.478793 0.996    135.7</span></span>
+<span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a><span class="co">#&gt;      Sigma[bus,car]  0.78141  0.76891 0.181697 1.005     86.0</span></span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="co">#&gt;      Sigma[car,car]  1.16719  1.02865 0.364239 1.009    116.5</span></span>
+<span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a><span class="co">#&gt;    Sigma[bus,train]  0.81602  0.85507 0.175795 0.998     75.6</span></span>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="co">#&gt;    Sigma[car,train]  0.76832  0.62301 0.286075 1.002     64.1</span></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="co">#&gt;  Sigma[train,train]  1.21533  1.12458 0.395939 1.015    105.3</span></span></code></pre></div>
+<p>The three attribute coefficients are negative: waiting, cost, and
+travel time reduce the utility of a mode. The income and party size
+coefficients are alternative-specific and have no direct interpretation
+on the utility scale, so <code>interpret(type = &quot;mea&quot;)</code> computes
+marginal effects, the derivatives of the choice probabilities with
+respect to a covariate, for a traveler with average covariates:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>mode_effects <span class="ot">&lt;-</span> <span class="fu">interpret</span>(travel, <span class="at">type =</span> <span class="st">&quot;mea&quot;</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>mode_effects[mode_effects<span class="sc">$</span>covariate <span class="sc">==</span> <span class="st">&quot;income&quot;</span>, ]</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="co">#&gt; Marginal effects at the average covariate values</span></span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a><span class="co">#&gt; Change in the probability of the alternative per unit of the covariate, with 95% interval </span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a><span class="co">#&gt;  covariate alternative   at     mean      sd    lower    upper</span></span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a><span class="co">#&gt;     income         air 21.3  0.01023 0.00382  0.00332  0.01747</span></span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt;     income         bus 21.3  0.00101 0.00237 -0.00327  0.00544</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt;     income         car 21.3  0.00885 0.00355  0.00184  0.01655</span></span>
+<span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a><span class="co">#&gt;     income       train 21.3 -0.02010 0.00434 -0.02873 -0.01223</span></span></code></pre></div>
+<p>A higher household income lowers the probability of the train and
+raises the probabilities of the plane and the car.</p>
+</div>
+<div id="individual-choice-sets" class="section level2">
+<h2>Individual choice sets</h2>
+<p>Not every alternative is available at every occasion: a traveler
+without a car cannot drive, and a route without a rail link has no train
+option. Unordered choices can therefore be made from occasion-specific
+subsets of the alternatives. In long format, an occasion lists only the
+rows of its available alternatives, and no further argument is needed.
+The sampler imputes the latent utilities of unavailable alternatives
+without restriction, so they do not affect the choice, and predictions
+assign them probability zero.</p>
+<p>Between Montreal and Toronto, travelers can fly, drive, or take the
+train, but not all modes are available on every trip. The
+<code>ModeCanada</code> data of the <strong>mlogit</strong> package
+cover 4324 trips in this corridor <span class="citation">(<a href="#ref-Bhat1995">Bhat 1995</a>)</span>.</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;ModeCanada&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mlogit&quot;</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">head</span>(ModeCanada)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; # A tibble: 6 × 11</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt;    case alt   choice  dist  cost   ivt   ovt  freq income urban noalt</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt;   &lt;int&gt; &lt;fct&gt;  &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;int&gt;</span></span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a><span class="co">#&gt; 1     1 train      0    83  28.2    50    66     4     45     0     2</span></span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="co">#&gt; 2     1 car        1    83  15.8    61     0     0     45     0     2</span></span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="co">#&gt; 3     2 train      0    83  28.2    50    66     4     25     0     2</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a><span class="co">#&gt; 4     2 car        1    83  15.8    61     0     0     25     0     2</span></span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="co">#&gt; 5     3 train      0    83  28.2    50    66     4     70     0     2</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="co">#&gt; 6     3 car        1    83  15.8    61     0     0     70     0     2</span></span></code></pre></div>
+<p>Cost (<code>cost</code>), in-vehicle time (<code>ivt</code>),
+out-of-vehicle time (<code>ovt</code>), and service frequency
+(<code>freq</code>) vary across modes; household income and the number
+of urban trip endpoints are trip-specific. The data also contain the
+bus, which was chosen on only 16 trips, too few to identify its
+coefficients and error covariances, so the bus rows and the trips on
+which it was chosen are removed. Cost and income are converted from
+Canadian dollars to euro, and trips with a single remaining alternative
+are dropped. The first 1000 of the remaining trips keep the computation
+short.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ModeCanada<span class="sc">$</span>cost <span class="ot">&lt;-</span> ModeCanada<span class="sc">$</span>cost <span class="sc">/</span> <span class="fl">1.6151</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>ModeCanada<span class="sc">$</span>income <span class="ot">&lt;-</span> ModeCanada<span class="sc">$</span>income <span class="sc">/</span> <span class="fl">1.6151</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>bus_trips <span class="ot">&lt;-</span> ModeCanada<span class="sc">$</span>case[ModeCanada<span class="sc">$</span>alt <span class="sc">==</span> <span class="st">&quot;bus&quot;</span> <span class="sc">&amp;</span> ModeCanada<span class="sc">$</span>choice <span class="sc">==</span> <span class="dv">1</span>]</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>canada_data <span class="ot">&lt;-</span> ModeCanada[</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  ModeCanada<span class="sc">$</span>alt <span class="sc">!=</span> <span class="st">&quot;bus&quot;</span> <span class="sc">&amp;</span> <span class="sc">!</span>(ModeCanada<span class="sc">$</span>case <span class="sc">%in%</span> bus_trips),</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>]</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>set_size <span class="ot">&lt;-</span> <span class="fu">table</span>(canada_data<span class="sc">$</span>case)</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>canada_data <span class="ot">&lt;-</span> canada_data[set_size[<span class="fu">as.character</span>(canada_data<span class="sc">$</span>case)] <span class="sc">&gt;</span> <span class="dv">1</span>, ]</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>canada_data <span class="ot">&lt;-</span> canada_data[</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  canada_data<span class="sc">$</span>case <span class="sc">%in%</span> <span class="fu">unique</span>(canada_data<span class="sc">$</span>case)[<span class="dv">1</span><span class="sc">:</span><span class="dv">1000</span>],</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>]</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a><span class="fu">table</span>(<span class="fu">table</span>(canada_data<span class="sc">$</span>case))</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a><span class="co">#&gt;   2   3 </span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co">#&gt; 283 717</span></span></code></pre></div>
+<p>The choice sets are read from the rows of each trip. Every trip is
+one decider, and the model has the same structure as the travel mode
+model above: three attributes of type <code>A</code>, two trip
+characteristics of type <code>B</code>, and the constants, all relative
+to <code>air</code>.</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>canada <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  choice <span class="sc">~</span> cost <span class="sc">+</span> ivt <span class="sc">+</span> ovt <span class="sc">+</span> freq <span class="sc">|</span> income <span class="sc">+</span> urban,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">data =</span> canada_data,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">format =</span> <span class="st">&quot;long&quot;</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="st">&quot;case&quot;</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">column_alternative =</span> <span class="st">&quot;alt&quot;</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">6000</span>,</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">3000</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="at">thin =</span> <span class="dv">15</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>)</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="fu">summary</span>(canada)</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ cost + ivt + ovt + freq | income + urban | 0 </span></span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a><span class="co">#&gt; Samples: 200 retained per chain, 2 chains</span></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="co">#&gt;            variable     mean    mode      sd rhat ess_bulk</span></span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a><span class="co">#&gt;          beta[cost] -0.03860 -0.0401 0.00736 1.04     32.2</span></span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a><span class="co">#&gt;           beta[ivt] -0.00608 -0.0060 0.00101 1.02     43.9</span></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a><span class="co">#&gt;           beta[ovt] -0.01651 -0.0176 0.00233 1.02    151.2</span></span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="co">#&gt;          beta[freq]  0.02731  0.0270 0.00556 1.00    282.3</span></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="co">#&gt;    beta[income_car] -0.01895 -0.0194 0.00670 1.00    159.2</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="co">#&gt;  beta[income_train] -0.03364 -0.0286 0.00978 1.02     53.6</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="co">#&gt;     beta[urban_car] -0.47057 -0.4902 0.15469 1.01    301.3</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="co">#&gt;   beta[urban_train]  0.70098  0.6166 0.28609 1.04     48.7</span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="co">#&gt;       beta[ASC_car] -0.67282 -0.7814 0.62921 1.06     29.6</span></span>
+<span id="cb11-28"><a href="#cb11-28" tabindex="-1"></a><span class="co">#&gt;     beta[ASC_train] -0.50463 -0.5758 0.58564 1.02     34.0</span></span>
+<span id="cb11-29"><a href="#cb11-29" tabindex="-1"></a><span class="co">#&gt;    Sigma[car,train]  0.35322  0.3501 0.16977 1.04     64.4</span></span>
+<span id="cb11-30"><a href="#cb11-30" tabindex="-1"></a><span class="co">#&gt;  Sigma[train,train]  1.22169  0.9447 0.69708 1.04     34.9</span></span></code></pre></div>
+<p>The income coefficients of car and train are negative: a higher
+income increases the probability of flying.</p>
+</div>
+<div id="ordered-responses" class="section level2">
+<h2>Ordered responses</h2>
+<p>Some responses are ordered levels. An ordered model has one latent
+utility per occasion and compares it with increasing thresholds
+<code>gamma</code>; the level is the interval into which the utility
+falls. <code>alternatives</code> gives the response levels in increasing
+order. Latent-variable data augmentation provides a direct Bayesian
+treatment of ordered probit models <span class="citation">(<a href="#ref-Albert1993">Albert and Chib 1993</a>)</span>. The following
+demonstration estimates a simulated three-category model and reports the
+coefficient and the free threshold beside their true values.</p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ordered_sim <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  choice <span class="sc">~</span> x <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">alternatives =</span> <span class="fu">c</span>(<span class="st">&quot;low&quot;</span>, <span class="st">&quot;middle&quot;</span>, <span class="st">&quot;high&quot;</span>),</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">choice_type =</span> <span class="st">&quot;ordered&quot;</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">500</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(<span class="at">beta =</span> <span class="fu">c</span>(<span class="at">x =</span> <span class="dv">1</span>), <span class="at">gamma =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>)),</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>)</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a><span class="fu">summary</span>(ordered_sim)</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a><span class="co">#&gt; Formula: choice ~ x | 0 | 0 </span></span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a><span class="co">#&gt;  variable dgp  mean  mode     sd rhat ess_bulk</span></span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a><span class="co">#&gt;   beta[x]   1 1.067 1.091 0.0768 1.04     74.7</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="co">#&gt;  gamma[2]   1 0.926 0.891 0.0624 1.05    144.1</span></span></code></pre></div>
+<p>The summary lists the coefficient and the free threshold
+<code>gamma[2]</code> beside their true values. The first threshold is
+fixed to zero and the error variance to one, which identifies the level
+and the scale of the utility.</p>
+<p>The <code>survey</code> data of the <strong>MASS</strong> package
+<span class="citation">(<a href="#ref-VenablesRipley2002">Venables and
+Ripley 2002</a>)</span> come from 237 statistics students at the
+University of Adelaide who reported how often they smoke, together with
+their age and how much they exercise. The smoking level
+<code>Smoke</code> is stored as a factor whose levels are in
+alphabetical order; <code>alternatives</code> puts them in their natural
+order from never to heavy. The other survey questions are not used;
+<code>fit()</code> ignores their missing values.</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;survey&quot;</span>, <span class="at">package =</span> <span class="st">&quot;MASS&quot;</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">levels</span>(survey<span class="sc">$</span>Smoke)</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Heavy&quot; &quot;Never&quot; &quot;Occas&quot; &quot;Regul&quot;</span></span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>smoking_levels <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">&quot;Never&quot;</span>, <span class="st">&quot;Occas&quot;</span>, <span class="st">&quot;Regul&quot;</span>, <span class="st">&quot;Heavy&quot;</span>)</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>smoking <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>  Smoke <span class="sc">~</span> Age <span class="sc">+</span> Exer <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">data =</span> survey,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">alternatives =</span> smoking_levels,</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>  <span class="at">choice_type =</span> <span class="st">&quot;ordered&quot;</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="cn">NULL</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>)</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a><span class="fu">summary</span>(smoking)</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a><span class="co">#&gt; Formula: Smoke ~ Age + Exer | 0 | 0 </span></span>
+<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a><span class="co">#&gt;        variable    mean   mode     sd rhat ess_bulk</span></span>
+<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="co">#&gt;       beta[Age] -0.0286 -0.028 0.0058    1      144</span></span>
+<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a><span class="co">#&gt;  beta[ExerNone] -0.1815 -0.127 0.2977    1      219</span></span>
+<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a><span class="co">#&gt;  beta[ExerSome] -0.4658 -0.480 0.1888    1      114</span></span>
+<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a><span class="co">#&gt;        gamma[2]  0.3777  0.401 0.0824    1      108</span></span>
+<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a><span class="co">#&gt;        gamma[3]  0.8967  0.837 0.1332    1      155</span></span></code></pre></div>
+<p>With four levels, the thresholds <code>gamma[2]</code> and
+<code>gamma[3]</code> are estimated. Each student has one latent
+utility, normally distributed around its systematic part, and the
+thresholds partition it into the four levels. The area under the density
+between two thresholds is the probability of that level. The figure
+shows the density of a student whose systematic utility is zero.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>thresholds <span class="ot">&lt;-</span> <span class="fu">coef</span>(smoking)[<span class="fu">c</span>(<span class="st">&quot;gamma[2]&quot;</span>, <span class="st">&quot;gamma[3]&quot;</span>)]</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>cuts <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="cn">Inf</span>, <span class="dv">0</span>, thresholds, <span class="cn">Inf</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>shades <span class="ot">&lt;-</span> <span class="fu">grey</span>(<span class="fu">seq</span>(<span class="fl">0.45</span>, <span class="fl">0.9</span>, <span class="at">length.out =</span> <span class="fu">length</span>(smoking_levels)))</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>utility <span class="ot">&lt;-</span> <span class="fu">seq</span>(<span class="sc">-</span><span class="fl">3.5</span>, <span class="fl">3.5</span>, <span class="at">length.out =</span> <span class="dv">400</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="fu">plot</span>(</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  utility, <span class="fu">dnorm</span>(utility),</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="at">type =</span> <span class="st">&quot;n&quot;</span>, <span class="at">axes =</span> <span class="cn">FALSE</span>, <span class="at">ylab =</span> <span class="st">&quot;&quot;</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">xlab =</span> <span class="st">&quot;latent utility of a student&quot;</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="cf">for</span> (k <span class="cf">in</span> <span class="fu">seq_along</span>(smoking_levels)) {</span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>  inside <span class="ot">&lt;-</span> utility <span class="sc">&gt;=</span> cuts[k] <span class="sc">&amp;</span> utility <span class="sc">&lt;=</span> cuts[k <span class="sc">+</span> <span class="dv">1</span>]</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>  <span class="fu">polygon</span>(</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>    <span class="fu">c</span>(<span class="fu">max</span>(cuts[k], <span class="sc">-</span><span class="fl">3.5</span>), utility[inside], <span class="fu">min</span>(cuts[k <span class="sc">+</span> <span class="dv">1</span>], <span class="fl">3.5</span>)),</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>    <span class="fu">c</span>(<span class="dv">0</span>, <span class="fu">dnorm</span>(utility[inside]), <span class="dv">0</span>),</span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>    <span class="at">col =</span> shades[k], <span class="at">border =</span> <span class="cn">NA</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a>  )</span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a>}</span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="fu">lines</span>(utility, <span class="fu">dnorm</span>(utility), <span class="at">lwd =</span> <span class="dv">2</span>)</span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="fu">axis</span>(<span class="dv">1</span>, <span class="at">at =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">3</span>, <span class="dv">0</span>, <span class="dv">3</span>))</span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="fu">legend</span>(</span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a>  <span class="st">&quot;topright&quot;</span>, <span class="at">legend =</span> smoking_levels, <span class="at">fill =</span> shades, <span class="at">border =</span> <span class="cn">NA</span>, <span class="at">bty =</span> <span class="st">&quot;n&quot;</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a>)</span></code></pre></div>
+<p><img role="img" aria-label src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAqAAAAGACAYAAAByeNBuAAAEDmlDQ1BrQ0dDb2xvclNwYWNlR2VuZXJpY1JHQgAAOI2NVV1oHFUUPpu5syskzoPUpqaSDv41lLRsUtGE2uj+ZbNt3CyTbLRBkMns3Z1pJjPj/KRpKT4UQRDBqOCT4P9bwSchaqvtiy2itFCiBIMo+ND6R6HSFwnruTOzu5O4a73L3PnmnO9+595z7t4LkLgsW5beJQIsGq4t5dPis8fmxMQ6dMF90A190C0rjpUqlSYBG+PCv9rt7yDG3tf2t/f/Z+uuUEcBiN2F2Kw4yiLiZQD+FcWyXYAEQfvICddi+AnEO2ycIOISw7UAVxieD/Cyz5mRMohfRSwoqoz+xNuIB+cj9loEB3Pw2448NaitKSLLRck2q5pOI9O9g/t/tkXda8Tbg0+PszB9FN8DuPaXKnKW4YcQn1Xk3HSIry5ps8UQ/2W5aQnxIwBdu7yFcgrxPsRjVXu8HOh0qao30cArp9SZZxDfg3h1wTzKxu5E/LUxX5wKdX5SnAzmDx4A4OIqLbB69yMesE1pKojLjVdoNsfyiPi45hZmAn3uLWdpOtfQOaVmikEs7ovj8hFWpz7EV6mel0L9Xy23FMYlPYZenAx0yDB1/PX6dledmQjikjkXCxqMJS9WtfFCyH9XtSekEF+2dH+P4tzITduTygGfv58a5VCTH5PtXD7EFZiNyUDBhHnsFTBgE0SQIA9pfFtgo6cKGuhooeilaKH41eDs38Ip+f4At1Rq/sjr6NEwQqb/I/DQqsLvaFUjvAx+eWirddAJZnAj1DFJL0mSg/gcIpPkMBkhoyCSJ8lTZIxk0TpKDjXHliJzZPO50dR5ASNSnzeLvIvod0HG/mdkmOC0z8VKnzcQ2M/Yz2vKldduXjp9bleLu0ZWn7vWc+l0JGcaai10yNrUnXLP/8Jf59ewX+c3Wgz+B34Df+vbVrc16zTMVgp9um9bxEfzPU5kPqUtVWxhs6OiWTVW+gIfywB9uXi7CGcGW/zk98k/kmvJ95IfJn/j3uQ+4c5zn3Kfcd+AyF3gLnJfcl9xH3OfR2rUee80a+6vo7EK5mmXUdyfQlrYLTwoZIU9wsPCZEtP6BWGhAlhL3p2N6sTjRdduwbHsG9kq32sgBepc+xurLPW4T9URpYGJ3ym4+8zA05u44QjST8ZIoVtu3qE7fWmdn5LPdqvgcZz8Ww8BWJ8X3w0PhQ/wnCDGd+LvlHs8dRy6bLLDuKMaZ20tZrqisPJ5ONiCq8yKhYM5cCgKOu66Lsc0aYOtZdo5QCwezI4wm9J/v0X23mlZXOfBjj8Jzv3WrY5D+CsA9D7aMs2gGfjve8ArD6mePZSeCfEYt8CONWDw8FXTxrPqx/r9Vt4biXeANh8vV7/+/16ffMD1N8AuKD/A/8leAvFY9bLAAAAOGVYSWZNTQAqAAAACAABh2kABAAAAAEAAAAaAAAAAAACoAIABAAAAAEAAAKgoAMABAAAAAEAAAGAAAAAAIttrJEAAEAASURBVHgB7Z0HmBRF17YPAgqSBAQJooCAIKjkICCIEUyIOQBGVDCLOWBWVEyoqKBgxIgJFVTMAQNmBMmigIhIBgVh/3nq/Xu+2WV3md2d6enuueu6ZqenQ9Wpu3pnnq46dapUTiwZCQIQgAAEIAABCEAAAj4R2MqncigGAhCAAAQgAAEIQAACjgAClBsBAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCCFBfcVMYBCAAAQhAAAIQgAAClHsAAhCAAAQgAAEIQMBXAghQX3FTGAQgAAEIQAACEIAAApR7AAIQgAAEIAABCEDAVwIIUF9xUxgEIAABCEAAAhCAAAKUewACEIAABCAAAQhAwFcCZXwtjcIgAAEIZDmBNWvW2E8//WQzZ8603377zf766y9bu3atbdq0ycqVK2dVqlSx2rVrW8OGDa158+a24447Zjkxqg8BCESRAAI0iq1KnSAAgcAQ+Pfff23SpEk2YcIE++CDD5z4zMnJSdq+mjVrWpcuXWz//fe3Qw891OrWrZv0tZwIAQhAIKgESsW+CJP/JgxqLbALAhCAQMAIfPLJJ/bYY4/Ziy++aKtWrYpbt9VWW9l2223nejorVKjgej132203a9GihX300Ue2bt06W7lypS1dutT++OMP1zsavzi2ITHav39/O/74403XkyAAAQiEkQACNIyths0QgEAgCfz33382duxYGzZsmH3//fdxG6tVq2b16tWzOnXq2Pbbb2+lS5eOH9NG9+7d7cADD7QxY8bk2q8PEqJz5syxX375xWbMmGEbNmxw51SqVMkGDBhgF110kct3swvZAQEIQCDABBCgAW4cTIMABMJBQANJzzzzjA0ZMsRmz57tjC5fvrw1btzYGjVqZJUrVy60It26dbODDjooXwGaeOH69evdEP6XX35pv/76qzu09dZb21lnnWVXX3211ahRI/F0tiEAAQgElgACNLBNg2EQgEAYCHz22Wd23nnn2ZQpU5y5Epu77767m0SUt6ezoPrsvffe1rNnzy0K0MTrFyxYYB9++GHcp7RixYpOAJ9//vlWtmzZxFPZhgAEIBA4AgjQwDUJBkEAAmEgsGLFCrvkkkts5MiRztxtt93WWrVqZbvssovJz7MoSQJUPaCPP/54US5z58pPdOLEiTZ9+nT3WTPnH3nkEdtrr72KnBcXQAACEPCLQNG+Jf2yinIgAAEIBJjA22+/bZo4JPEpsbnHHntYnz593JB7UcVnSatZq1YtNynplFNOcf6lU6dOdROVBg8ebJqBT4IABJIj0KlTJzexb+7cuZtd8NVXX1mpUqXs448/3uwYO4pHgDBMxePGVRCAQBYSkA/mZZddZvfcc4+rvXwuO3fu7Ga1lwSHfEhLGpCkSZMmpuH39957zw3NayLUO++8Y88++6w1a9asJOZxLQQyRkAPVkVJo0ePLsrpm52rmLzyqdaoAim9BOgBTS9fcocABCJCYP78+a5nUeJTvZytW7e2Xr16lVh8phJPmTJl7IADDnA/oJpt/8MPP1jbtm3t6aefTmUx5AWByBJQ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339/1wMa5TpTt3CvAkT7bZlAqVKl7M4777R99tnHli5dahrRmDdv3pYv5AwIRJQAAjSiDUu1wktAIVseffRRK1OmjAs0X61atfBWBsuTJuB375/f5SUDIog2JWN3sufof3rEiBHWvn17W7Bggfv/XrhwYbKXcx4EIkUAARqp5qQyYSdw+eWX23333ecmGvXo0cN22GGHsFcJ+wNKIOpiL6DYrVy5cvbYY4+5UGpz5sxxS+kuXrw4qOZiFwTSRgABmja0ZAyBohG4+uqrbejQoU58apiuTp06RcuAsyEQcgLZIoorVqxoTz75pO222272yy+/uJ5QhVkjQSCbCCBAs6m1qWtgCVxzzTWmNaTlJ7b33ntbvXr1AmsrhqWHQLaIr/TQC1+uVapUsaeeesqaNGliU6dOdT2hiNDwtSMWF58AArT47LgSAikhcOWVV9pNN93kxGe3bt1YYjMlVMOXid8C1O/ywtci6bdY/t3PPPOMW93sp59+chOUGI5PP3dKCAYBBGgw2gErspTAxRdfbLfeeiviM0vbP5PVDqIADaJN6W6j7bff3saOHRvvCdVDqCYokSAQdQII0Ki3MPULJAHF+TzrrLPsrrvucj6fWuGofv36gbQVoyAAgfQSkAjVMp2eT2jXrl1NE5RIEIgyAQRolFuXugWSgFZDUZD5hx9+2EqXLu18v3beeedA2opR/hHwu/fP7/KSIRlEm5KxOxXnaDhePaEtW7a0uXPnWpcuXZxvaCryJg8IBJEAAjSIrYJNkSWwdu1atxSffmi0rKaCzO+4446RrS8VS55ANouv5ClF+0xNTHr66aetU6dOtmjRIlNP6GeffRbtSlO7rCWAAM3apqfifhP466+/XG/nW2+9Zdtss41pOb5atWr5bQblQcARQPAG80aoUKGCjRkzxg488EBbtmyZC9H0+uuvB9NYrIJACQggQEsAj0shkCyBWbNm2V577WVffPGFKQbgwQcfbNWrV0/2cs7LAgIIwixo5CSrqAfUBx980I477jj7559/3BryDz30UJJXcxoEwkEAARqOdsLKEBPQEFrHjh1t5syZJj8vic/KlSuHuEaYHgUCCN5gt6L8w2+77TbT0ryatHj22WfbpZdearRbsNsN65IngABNnhVnQqDIBOTPpVWNli5d6nw9e/bsaeXLly9yPlwAgWwggLjavJUlQO+4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QKPQitQBAhCAAAQgAAEIhIgAAjREjYWpEIAABCAAAQhAIAoEEKBRaEXqAAEIQAACEIAABEJEAAEaosbCVAhAAAIQgAAEIBAFAgjQKLQidYAABCAAAQhAAAIhIoAADVFjYSoEIAABCEAAAhCIAgEEaBRakTpAAAIQgAAEIACBEBFAgIaosTAVAhCAAAQgAAEIRIEAAjQKrZjmOuTk5KS5BLKHAAT4P+MegIA/BPhf84fzlkpBgG6JUBYfnzNnjl100UW20047Wa1ataxv3762YsWKLCZC1SGQWgKrV6+2yy67zBo3bmzVqlWzPn362NKlS1NbCLlBAAK2YcMGu/vuu61jx45WsWJF69atm33xxReQySABBGgG4Qe96FNOOcU+++wzGzlypD300EM2ZcoUO+CAA4JuNvZBIDQErrzyShs3bpw9/PDD9vrrr9vcuXNt3333NXpoQtOEGBoSAo888ohdf/31dvLJJ9ukSZOsbt261qNHD5s2bVpIahA9M0vFvugYX41eu5a4Rm+//bYdeOCB9tVXX1nbtm1dfs8995wdd9xxNmPGDNdjU+JCyAACWUzghx9+sFatWjkBevjhhzsS06dPt2bNmtlbb71lBx10UBbToeoQSB2BdevWWcOGDa1fv342dOhQl/GqVausdu3adsUVV9hVV12VusLIKWkCZZI+kxOzisD+++9vGoJv0KBBvN5//PGH2y5btmx8HxsQgEDxCKgXZuutt7aePXvGM2jatKk1adLE3nzzTQRonAobECgZgfLly5se+MqVKxfPaNmyZfbvv/+6/8H4TjZ8JYAA9RV3eAorVapUXHyuXLnSJk6caHfccYcdcsghVr9+/fBUBEshEFACM2fOtBo1amz2A1inTh1bvHhxQK3GLAiEk4D+15Q2btzofD9vueUWq169uh111FHhrFAErEaARqAR010F+aR9/fXXbpLEiBEj0l0c+UMgKwhoCFATj/KmqlWrIkDzQuEzBFJEYNiwYW7in7IbM2ZMvKMlRdmTTREIMAmpCLCieOp///1nixYtyvXSvsQ0atQoe+ONN6xly5a25557uslIicfZhgAEik6gdOnSttVWm38Fa/Rh/fr1Rc+QKyAAgS0SOOaYY1yHyvnnn28DBgyI+4Ru8UJOSDmBzb/9Ul4EGQaZwKxZs0xDfokvDQ0mJonOXr16uckSa9eutaeeeirxMNsQgEAxCGgChPzQ8qbly5db5cqV8+7mMwQgkAICciFr06aN3XPPPc7Pevjw4SnIlSyKQ4Ah+OJQi9A1O+ywg91///25aqSYn/Pnz3evLl26xI9VqVLFxVCbPHlyfB8bEIBA8Qjo/+yvv/6yTZs25eoJlf9n4v9d8XLnKghAwCOgeLteRJdKlSp5u50Afe211+y3336zevXqxfez4Q8BekD94RzYUuRvNmjQoFwv7Rs9erR1797dxSX0jFcQegXuVTgLEgQgUDIC++yzj+mH8eOPP45n9Ouvv9rUqVNdkOz4TjYgAIESEVCHimJ+KhZoYtLkWs2M1wggyX8CxAH1n3koStQwvHw+FXj+9ttvt3/++cduuukmNwyv4PTt2rULRT0wEgJBJqCHPInQF1980SpUqGD9+/c3DcF/+umnJl9QEgQgkBoCGlXQA546V/TbpglIWghi8ODBphnxJP8JIED9Zx6aEhWMXk7a+qdV0hDFAw88YIceemho6oChEAgyAfXMHHvssSa3FsXXlSCVb9puu+0WZLOxDQKhI7Bw4UI77bTTbMKECe7hTv9vF198sVsdidjWmWlOBGhmuIemVC2UpR9JzdbFRyY0zYahISOwZMkS06z4/MIyhawqmAuBQBP4+++/Tf9vciVDeGa2qRCgmeVP6RCAAAQgAAEIQCDrCGyVdTWmwhCAAAQgAAEIQAACGSWAAM0ofgqHAAQgAAEIQAAC2UcAAZp9bU6NIQABCEAAAhCAQEYJIEAzip/CIQABCEAAAhCAQPYRQIBmX5tTYwhAAAIQgAAEIJBRAgjQjOKncAhAAAIQgAAEIJB9BBCg2dfm1BgCEIAABCAAAQhklAACNKP4KRwCEIAABCAAAQhkHwEEaPa1OTWGAAQgAAEIQAACGSWAAM0ofgqHAAQgAAEIQAAC2UcAAZp9bU6NIQABCEAAAhCAQEYJIEAzip/CIQABCEAAAhCAQPYRQIBmX5tTYwhAAAIQgAAEIJBRAgjQjOKncAhAAAIQgAAEIJB9BBCg2dfm1BgCEIAABCAAAQhklAACNKP4KRwCEIAABCAAAQhkHwEEaPa1OTWGAAQgAAEIQAACGSWAAM0ofgqHAAQgAAEIQAAC2UcAAZp9bU6NIQABCEAAAhCAQEYJIEAzip/CIQABCEAAAhCAQPYRQIBmX5tTYwhAAAIQgAAEIJBRAgjQjOKncAhAAAIQgAAEIJB9BBCg2dfm1BgCEIAABCAAAQhklAACNKP4KRwCEIAABCAAAQhkHwEEaPa1OTWGAAQiQGD58uU2b94827BhQwRqQxUgAIFsI4AAzbYWp74QSCGBbbbZxoYPH550jps2bbIRI0bYP//8k/Q1yZ44efJk++STT5I9Pd/z8rOvatWqNnToUHf+SSedZF27do1fm3hMO1NhQzzzAjZycnLs2GOPtWrVqlmDBg1cmQWcmvLdqarf8ccfb/vuu29g7Uu5YWQIAQhsRgABuhkSdkAAAuki8Pzzz9vAgQNt48aNKS3iv//+s7322stmzZpVonzzs+/EE0+03XffPd98E4+lyoZ8C0rY+eOPP5rsvOaaa2zOnDnWsWPHhKPp2/SrfsWtQdDtK269uA4CUSVQJqoVo14QgEDwCKiHMR1JvYJ6lTTlZ9/9999fYLaJx1JlQ4GF/f8Dixcvdlt9+/Z1PaBbOj9Vx/2qX3HtDbp9xa0X10EgqgToAY1qy1IvCGSAwNy5c+3II4+0+vXrW6VKlaxNmzb2zDPPOEtee+01u/rqq922hrGffPLJuIWPPfaYtW7d2l3Tvn17e/311+PHNOzboUMH17t54IEH2nbbbWd77rmnvfzyy+6ctWvXxnsBr7/+euvfv3/82sSNDz/80Nq2bWtLly5N3G0q74UXXrCC7Ntnn33s8ccfz3WN98E7lp8Nt9xyix100EHeqfH3Sy65xM4777z457wbciPo1q2bValSxRo3bmyXXXaZrV+/3p0m94VBgwa57T59+tjZZ5+d9/L451deecW6dOnihupr165tvXr1sunTp8eP57fx4IMP2q677moVKlSwli1b2r333utOy69+OtCpUyd77rnncmV15ZVX2plnnhnfJ1F/ww03uF7knXbayYYMGWL5CX0/7oG4UWxAAAIZJ4AAzXgTYAAEokFg5cqVTnD+8ccfdu2119qwYcNs6623Ng1TT5061Zo1a2YHHHCAq6wESqtWrdy2zhswYIA1adLECT2JmsMPPzwuMFesWGFfffWVSXzusMMOduedd1q5cuWc0JXgVRka1leSX+HRRx/ttvP+0aSdKVOmbDZpR/uWLFlSoH3fffedqU75Je9YfjZIfE+cONHZ7l27bt06e+ihh6xFixberlzv3377rXXv3t0qV65s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" alt style="display: block; margin: auto;" /></p>
+<p>A covariate shifts the density along the utility axis, so one
+coefficient per covariate describes its effect on all four levels. The
+age coefficient is negative: older students report smoking less. The
+factor <code>Exer</code> enters through its dummy variables relative to
+the students who exercise frequently.
+<code>interpret(type = &quot;ame&quot;)</code> translates the age coefficient into
+probabilities: it differentiates the probability of each level with
+respect to age and averages the derivatives over the students. The
+vignette <a href="https://loelschlaeger.de/RprobitB/articles/v04_prediction.html">Posterior
+prediction</a> explains marginal effects in more detail.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>age_effects <span class="ot">&lt;-</span> <span class="fu">interpret</span>(smoking, <span class="at">type =</span> <span class="st">&quot;ame&quot;</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>age_effects</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; Average marginal effects on the choice probabilities</span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; Change in the probability of the alternative per unit of the covariate, with 95% interval </span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt;  covariate alternative     mean       sd    lower    upper</span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt;        Age       Never  0.00817 0.001405  0.00529  0.01078</span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt;        Age       Occas -0.00234 0.000657 -0.00370 -0.00118</span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt;        Age       Regul -0.00285 0.000693 -0.00430 -0.00162</span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt;        Age       Heavy -0.00297 0.000760 -0.00453 -0.00162</span></span></code></pre></div>
+<p>One more year of age raises the probability of never smoking by about
+0.8 percentage points and lowers the probabilities of the other three
+levels.</p>
+</div>
+<div id="ranked-responses" class="section level2">
+<h2>Ranked responses</h2>
+<p>Ranked data record the complete order of the alternatives. In wide
+format, the response columns combine the response name with each
+alternative, for example <code>rank_Xbox</code>. The model is the same
+probit model as for unordered choices, but the likelihood uses the full
+ordering of the utilities. The following demonstration simulates
+rankings of three alternatives and compares the coefficient and the free
+covariance parameters with the true values.</p>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a>ranked_sim <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a>  rank <span class="sc">~</span> x <span class="sc">|</span> <span class="dv">0</span>,</span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a>  <span class="at">choice_type =</span> <span class="st">&quot;ranked&quot;</span>,</span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a>  <span class="at">n_deciders =</span> <span class="dv">300</span>,</span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a>  <span class="at">dgp_parameters =</span> <span class="fu">list</span>(</span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a>    <span class="at">beta =</span> <span class="fu">c</span>(<span class="at">x =</span> <span class="dv">1</span>),</span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a>    <span class="at">Sigma =</span> <span class="fu">rbind</span>(<span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">0</span>, <span class="dv">0</span>), <span class="fu">c</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="fl">0.2</span>), <span class="fu">c</span>(<span class="dv">0</span>, <span class="fl">0.2</span>, <span class="dv">1</span>))</span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a>  ),</span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">1</span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a>)</span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="fu">summary</span>(ranked_sim, <span class="at">variables =</span> <span class="fu">c</span>(<span class="st">&quot;beta[x]&quot;</span>, <span class="st">&quot;Sigma[C,B]&quot;</span>, <span class="st">&quot;Sigma[C,C]&quot;</span>))</span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt; Bayesian probit choice model</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt; Formula: rank ~ x | 0 | 0 </span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt; Samples: 500 retained per chain, 1 chain</span></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="co">#&gt;    variable dgp  mean  mode     sd rhat ess_bulk</span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="co">#&gt;     beta[x] 1.0 1.253 1.246 0.0966 1.03     16.1</span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a><span class="co">#&gt;  Sigma[C,B] 0.2 0.128 0.115 0.1690 1.03     34.2</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co">#&gt;  Sigma[C,C] 1.0 1.690 1.585 0.4085 1.02     53.6</span></span></code></pre></div>
+<p>The <code>Game</code> data of the <strong>mlogit</strong> package
+contain complete rankings of six gaming platforms by 91 Dutch
+respondents, together with whether they own each platform
+(<code>own</code>), their age, and their weekly gaming hours; the source
+study develops a rank-ordered choice model for these data <span class="citation">(<a href="#ref-Fok2012"><span class="nocase">Fok et
+al.</span> 2012</a>)</span>. The ranks are stored in the columns
+<code>ch.Xbox</code>, <code>ch.PlayStation</code>, and so on, so the
+response in the formula is <code>ch</code> and
+<code>delimiter = &quot;.&quot;</code> separates it from the alternative.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;Game&quot;</span>, <span class="at">package =</span> <span class="st">&quot;mlogit&quot;</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>gaming <span class="ot">&lt;-</span> <span class="fu">fit</span>(</span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  ch <span class="sc">~</span> own <span class="sc">|</span> age <span class="sc">+</span> hours,</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">data =</span> Game,</span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  <span class="at">alternatives =</span> <span class="fu">c</span>(</span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>    <span class="st">&quot;Xbox&quot;</span>, <span class="st">&quot;PlayStation&quot;</span>, <span class="st">&quot;PSPortable&quot;</span>, <span class="st">&quot;GameCube&quot;</span>, <span class="st">&quot;GameBoy&quot;</span>, <span class="st">&quot;PC&quot;</span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>  ),</span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>  <span class="at">choice_type =</span> <span class="st">&quot;ranked&quot;</span>,</span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>  <span class="at">delimiter =</span> <span class="st">&quot;.&quot;</span>,</span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>  <span class="at">column_decider =</span> <span class="cn">NULL</span>,</span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a>  <span class="at">iterations =</span> <span class="dv">1000</span>,</span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a>  <span class="at">warmup =</span> <span class="dv">500</span>,</span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a>  <span class="at">thin =</span> <span class="dv">20</span>,</span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a>  <span class="at">chains =</span> <span class="dv">2</span>,</span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a>  <span class="at">progress =</span> <span class="cn">FALSE</span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a>)</span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a><span class="fu">coef</span>(gaming)[<span class="dv">1</span><span class="sc">:</span><span class="dv">6</span>]</span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a><span class="co">#&gt;             beta[own]    beta[age.GameCube]          beta[age.PC] </span></span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a><span class="co">#&gt;           0.841230647           0.010794947           0.054745222 </span></span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a><span class="co">#&gt;  beta[age.PSPortable] beta[age.PlayStation]        beta[age.Xbox] </span></span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a><span class="co">#&gt;           0.003669015           0.038698335           0.021066253</span></span></code></pre></div>
+<p>The coefficient of <code>own</code> is positive: owning a platform
+raises its rank. The alternative-specific constants and the coefficients
+of <code>age</code> and <code>hours</code> are relative to the base
+alternative <code>GameBoy</code>. Which platform gains from additional
+gaming hours? For a ranked model, the marginal effects of
+<code>interpret()</code> refer to the probability of being ranked first,
+here for a respondent of average age who plays the average number of
+hours:</p>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>platform_effects <span class="ot">&lt;-</span> <span class="fu">interpret</span>(gaming, <span class="at">type =</span> <span class="st">&quot;mea&quot;</span>)</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>platform_effects[platform_effects<span class="sc">$</span>covariate <span class="sc">==</span> <span class="st">&quot;hours&quot;</span>, ]</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a><span class="co">#&gt; Marginal effects at the average covariate values</span></span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a><span class="co">#&gt; Change in the probability of the alternative per unit of the covariate, with 95% interval </span></span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a><span class="co">#&gt;  covariate alternative   at     mean      sd    lower     upper</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a><span class="co">#&gt;      hours     GameBoy 3.88 -0.00221 0.00136 -0.00573 -0.000403</span></span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a><span class="co">#&gt;      hours    GameCube 3.88 -0.00476 0.00366 -0.01232  0.001605</span></span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a><span class="co">#&gt;      hours          PC 3.88  0.03442 0.01328  0.01232  0.058558</span></span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a><span class="co">#&gt;      hours  PSPortable 3.88 -0.00873 0.00375 -0.01562 -0.003349</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a><span class="co">#&gt;      hours PlayStation 3.88 -0.00511 0.00769 -0.01932  0.007699</span></span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a><span class="co">#&gt;      hours        Xbox 3.88 -0.01361 0.00792 -0.02724 -0.001194</span></span></code></pre></div>
+<p>Heavy gamers prefer the PC: every additional weekly hour raises the
+probability of ranking it first by about 3.4 percentage points.</p>
+</div>
+<div id="further-reading" class="section level2">
+<h2>Further reading</h2>
+<p>The vignette <a href="https://loelschlaeger.de/RprobitB/articles/v03_heterogeneity.html">Modeling
+preference heterogeneity</a> covers coefficients that differ between
+deciders. The vignette <a href="https://loelschlaeger.de/RprobitB/articles/v04_prediction.html">Posterior
+prediction</a> computes predictions and marginal effects from a fitted
+model, and the vignette <a href="https://loelschlaeger.de/RprobitB/articles/v05_model_evaluation.html">Bayesian
+model evaluation</a> compares competing specifications.</p>
+</div>
+<div id="references" class="section level2 unnumbered">
+<h2 class="unnumbered">References</h2>
+<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="ref-Albert1993" class="csl-entry">
+Albert, James H., and Siddhartha Chib. 1993. <span>“Bayesian Analysis of
+Binary and Polychotomous Response Data.”</span> <em>Journal of the
+American Statistical Association</em> 88 (422): 669–79. <a href="https://doi.org/10.1080/01621459.1993.10476321">https://doi.org/10.1080/01621459.1993.10476321</a>.
+</div>
+<div id="ref-Bhat1995" class="csl-entry">
+Bhat, Chandra R. 1995. <span>“A Heteroscedastic Extreme Value Model of
+Intercity Travel Mode Choice.”</span> <em>Transportation Research Part
+B: Methodological</em> 29 (6): 471–83. <a href="https://doi.org/10.1016/0191-2615(95)00015-6">https://doi.org/10.1016/0191-2615(95)00015-6</a>.
+</div>
+<div id="ref-Croissant2020" class="csl-entry">
+Croissant, Yves. 2020. <span>“Estimation of Random Utility Models in
+<span>R</span>: The <span class="nocase">mlogit</span> Package.”</span>
+<em>Journal of Statistical Software</em> 95 (11): 1–41. <a href="https://doi.org/10.18637/jss.v095.i11">https://doi.org/10.18637/jss.v095.i11</a>.
+</div>
+<div id="ref-Fok2012" class="csl-entry">
+<span class="nocase">Fok, Dennis, Richard Paap, and Bram van
+Dijk</span>. 2012. <span>“A Rank-Ordered Logit Model with Unobserved
+Heterogeneity in Ranking Capabilities.”</span> <em>Journal of Applied
+Econometrics</em> 27 (5): 831–46. <a href="https://doi.org/10.1002/jae.1223">https://doi.org/10.1002/jae.1223</a>.
+</div>
+<div id="ref-Kleiber2008" class="csl-entry">
+Kleiber, Christian, and Achim Zeileis. 2008. <em>Applied Econometrics
+with <span>R</span></em>. Springer. <a href="https://doi.org/10.1007/978-0-387-77318-6">https://doi.org/10.1007/978-0-387-77318-6</a>.
+</div>
+<div id="ref-Oelschlaeger2026c" class="csl-entry">
+Oelschläger, Lennart. 2026. <span>“Overcoming Challenges in Modeling
+Choice Behavior Heterogeneity.”</span> PhD thesis, Bielefeld University.
+<a href="https://pub.uni-bielefeld.de/record/3014719">https://pub.uni-bielefeld.de/record/3014719</a>.
+</div>
+<div id="ref-VenablesRipley2002" class="csl-entry">
+Venables, William N., and Brian D. Ripley. 2002. <em>Modern Applied
+Statistics with s</em>. 4th ed. Springer.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

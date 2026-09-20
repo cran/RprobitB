@@ -1,3 +1,35 @@
+# RprobitB 2.0.0
+
+* Replaced the former multi-step workflow with `fit()`, which accepts an
+  empirical data frame or simulates data when `data = NULL`.
+  
+* Added correlated and uncorrelated normal, positive log-normal, and negative
+  log-normal random effects through named `random_effects` specifications.
+  
+* Added `latent_class_effects` to `fit()`, which names the effects that
+  differ between the latent classes.
+  
+* Added `interpret()`, which reads the estimates as compensations between
+  effects, such as the willingness to pay, and as average marginal
+  effects or marginal effects at the average covariate values, each with
+  posterior uncertainty.
+
+* Added the `update()` method for fitted models, which refits with a modified
+  specification.
+  
+* Added decider-level WAIC and PSIS-LOO and replaced the harmonic-mean
+  marginal-likelihood estimator with bridge-sampling Bayes factors.
+
+* Reworked `predict()` and `residuals()` around posterior uncertainty.
+
+* Added posterior diagnostics and standard `bayesplot` displays through
+  `summary()` and `plot()`.
+  
+* Improved numerical efficiency of the Gibbs sampler.
+
+* Rewrote the vignettes: getting started, model variants, preference
+  heterogeneity, posterior prediction, and model evaluation.
+  
 # RprobitB 1.2.0
 
 * Fix in `npar.RprobitB_fit()`. Parameters for the covariance matrices of the mixing distributions have been miscounted.
