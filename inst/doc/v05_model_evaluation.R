@@ -76,14 +76,14 @@ loo::loo_compare(loo_fixed, loo_random)
 ## ----ordered-comparison-------------------------------------------------------
 data("survey", package = "MASS")
 smoking_full <- fit(
-  Smoke ~ Age + Exer | 0,
+  Smoke ~ Age + Exer,
   data = survey,
   alternatives = c("Never", "Occas", "Regul", "Heavy"),
   choice_type = "ordered",
   column_decider = NULL,
   chains = 1
 )
-smoking_age <- update(smoking_full, . ~ Age | 0)
+smoking_age <- update(smoking_full, . ~ Age)
 loo::loo_compare(
   loo(smoking_full, progress = FALSE), loo(smoking_age, progress = FALSE)
 )

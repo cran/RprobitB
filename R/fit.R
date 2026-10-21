@@ -19,15 +19,15 @@
 #' `data` as its own decider and adds the identifiers as column `deciderID`.
 #'
 #' @param alternatives \[`character()` | `NULL`\]\cr
-#' Alternative labels. Required if `choice_type = "ordered"`, then in
-#' increasing order of the response levels. Otherwise, `NULL` takes them
-#' from `data` or, if `data = NULL`, uses capital letters.
+#' Alternative labels. Required if `choice_type = "ordered"` and `data` is
+#' supplied, then in increasing order of the response levels. Otherwise,
+#' `NULL` takes them from `data` or, if `data = NULL`, uses capital letters.
 #'
 #' @param base \[`character(1)` | `NULL`\]\cr
 #' The alternative whose utility is subtracted from all others, see the
 #' details on the normalization. Coefficients that vary across
 #' alternatives are then expressed relative to it, and none is estimated
-#' for it. `NULL` uses the first model alternative. Not used if
+#' for it. `NULL` uses the first alternative in alphabetical order. Not used if
 #' `choice_type = "ordered"`, which has a single utility per occasion.
 #'
 #' @param choice_type \[`character(1)`\]\cr
@@ -51,10 +51,12 @@
 #'
 #' @param scale \[`NULL` | named `numeric(1)`\]\cr
 #' Utility scale normalization, see the details on the normalization. `NULL`
-#' fixes the error variance of the first utility difference to one.
+#' fixes the error variance of the first utility difference, or of the
+#' single utility if `choice_type = "ordered"`, to one.
 #' Otherwise one named value:
 #'
-#' - `c(<effect> = <value>)` fixes a non-random coefficient, e.g.
+#' - `c(<effect> = <value>)` fixes a non-random coefficient without latent
+#'   classes, e.g.
 #'   `scale = c(price = -1)`.
 #' - `c("Sigma_<alternative>,<alternative>" = <value>)` fixes the error
 #'   variance of the utility difference between a non-base alternative and the
@@ -120,7 +122,7 @@
 #' They are required for `coef(level = "individual")` and
 #' `predict(type = "conditional")`.
 #'
-#' Enable this only when you need them, because they dominate the memory
+#' Enable this only when you need them, because they can dominate the memory
 #' the fitted object occupies.
 #'
 #' @param n_deciders \[`integer(1)`\]\cr
@@ -164,7 +166,11 @@
 #'
 #' - `call`: the matched call.
 #' - `data`: the data used.
-#' - `model`: the model specification.
+#' - `model`: the model specification. If `class_update` changes the number
+#'   of classes, `model$latent_classes$history` holds the number of classes
+#'   at every iteration of every chain, and for `"weight_based"`,
+#'   `model$latent_classes$changes` holds the change of the heuristic at an
+#'   iteration (0 none, 1 removal, 2 split, 3 merge).
 #' - `prior`: the prior specification.
 #' - `draws`: the posterior draws.
 #' - `sampler`: iterations, warmup, thinning, chains, and elapsed times.
@@ -183,7 +189,7 @@
 #' the marginal data augmentation of Imai and van Dyk (2005), which expands
 #' the scale of the latent utilities in every iteration and returns to the
 #' fixed one afterwards, so that the covariance and the coefficients move
-#' freely. Every retained draw is then rescaled to the normalization in
+#' more freely. Every retained draw is then rescaled to the normalization in
 #' `scale`.
 #'
 #' @section Individual choice sets:
@@ -204,7 +210,7 @@
 #' allocates every decider to exactly one of them. `latent_class_effects`
 #' decides which mixture model this is:
 #'
-#' - A random effect named there follows a class-specific normal
+#' - A random effect named there follows a class-specific normal or log-normal
 #'   distribution. This is the latent class mixed probit model, reported as
 #'   `mu[<effect>,<class>]` and `Omega[<effect>,<effect>,<class>]`.
 #' - An effect that is named there but has no random effect is a single
@@ -218,11 +224,11 @@
 #'   finite-mixture posterior given that all of them are used.
 #' - `"sparse"` starts from `classes` classes, deliberately more than
 #'   expected, and empties the superfluous ones through a small symmetric
-#'   Dirichlet weight prior (Rousseau and Mengersen 2011;
-#'   Frühwirth-Schnatter and Malsiner-Walli 2019).
+#'   Dirichlet weight prior (Rousseau and Mengersen 2011; Malsiner-Walli et
+#'   al. 2016; Frühwirth-Schnatter and Malsiner-Walli 2019).
 #' - `"dirichlet_process"` creates and removes occupied classes with
 #'   Neal's (2000) auxiliary-parameter allocation update, up to
-#'   `max_classes`. Its precision hyperparameter is updated with the
+#'   `max_classes`. With a gamma hyperprior, its precision is updated with the
 #'   beta-gamma augmentation of Escobar and West (1995).
 #' - `"weight_based"` splits, removes, and merges classes during warmup
 #'   and then keeps their number fixed. Every `buffer` iterations it removes the
@@ -250,8 +256,8 @@
 #' updated by a log-scale Metropolis-Hastings step when it has a gamma
 #' hyperprior. `prior` is a named list that overrides the following defaults,
 #' where `P_f`, `P_l`, and `P_r` count the fixed effects without latent
-#' classes, the latent class effects, and the random effects, and `J` the
-#' alternatives:
+#' classes, the fixed effects with latent classes, and the random effects,
+#' and `J` the alternatives:
 #'
 #' - `fixed_mean` \[`numeric(P_f)`\] and `fixed_covariance`
 #'   \[`matrix(P_f, P_f)`\]: normal prior for the fixed coefficients without
@@ -291,6 +297,8 @@
 #' \insertRef{Dahl2006}{RprobitB}
 #'
 #' \insertRef{Escobar1995}{RprobitB}
+#'
+#' \insertRef{MalsinerWalli2016}{RprobitB}
 #'
 #' \insertRef{FruehwirthSchnatter2019}{RprobitB}
 #'
@@ -887,6 +895,12 @@ fit <- function(
         as.character(data[[response]]), levels = alternatives, ordered = TRUE
       )
     }
+    decider_order <- order(
+      match(data[[column_decider]], unique(data[[column_decider]])),
+      method = "radix"
+    )
+    data <- data[decider_order, , drop = FALSE]
+    rownames(data) <- NULL
     choice_data <- choicedata::choice_data(
       data_frame = data,
       format = format,
@@ -1502,7 +1516,8 @@ fit <- function(
       if (!sampler_data$P_l) samples$lambda <- NULL
       if (!sampler_data$P_r) samples[c("b", "Omega", "beta")] <- NULL
       if (!sampler_data$P_r && !sampler_data$P_l) {
-        samples[c("s", "z", "class_sequence", "delta")] <- NULL
+        samples[c("s", "z", "class_sequence", "update_sequence", "delta")] <-
+          NULL
       }
       if (!isTRUE(prior_sampler$sample_delta)) samples$delta <- NULL
       if (!sampler_data$ordered) samples$d <- NULL
@@ -1674,6 +1689,18 @@ fit <- function(
   )
   if (identical(class_update, "weight_based")) {
     model_classes$control <- weight_based_control
+  }
+  if (changing_dimension) {
+    model_classes$history <- vapply(
+      chain_results, function(x) as.integer(x$samples$class_sequence),
+      integer(iterations)
+    )
+    if (identical(class_update, "weight_based")) {
+      model_classes$changes <- vapply(
+        chain_results, function(x) as.integer(x$samples$update_sequence),
+        integer(iterations)
+      )
+    }
   }
   model <- list(
     formula = choice_formula$formula,

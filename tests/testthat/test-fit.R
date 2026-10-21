@@ -40,15 +40,17 @@ test_that("fit handles empirical and simulated data", {
     progress = FALSE
   )
   ordered_model <- fit(
-    choice ~ x | 0,
+    choice ~ x,
     alternatives = c("low", "middle", "high"),
     choice_type = "ordered",
+    random_effects = c(ASC = "n"),
     n_deciders = 4L,
     iterations = 10L,
     warmup = 5L,
     chains = 1L,
     progress = FALSE
   )
+  expect_identical(ordered_model$model$effects$effect_name, c("x", "ASC"))
   ranked_model <- fit(
     choice ~ x | 0,
     choice_type = "ranked",
@@ -224,6 +226,14 @@ test_that("fit handles empirical and simulated data", {
       deltamin = 0.1, deltashift = 0.5
     )
   )
+  expect_identical(
+    dim(weight_based_mixture$model$latent_classes$history),
+    c(
+      weight_based_mixture$sampler$iterations,
+      weight_based_mixture$sampler$chains
+    )
+  )
+  expect_true(all(weight_based_mixture$model$latent_classes$changes %in% 0:3))
   weight_based_draws <- posterior::as_draws_matrix(
     weight_based_mixture$draws
   )[, "n_classes"]

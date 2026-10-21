@@ -115,11 +115,11 @@ summary(canada)
 
 ## ----ordered-sim--------------------------------------------------------------
 ordered_sim <- fit(
-  choice ~ x | 0,
+  choice ~ x,
   alternatives = c("low", "middle", "high"),
   choice_type = "ordered",
   n_deciders = 500,
-  dgp_parameters = list(beta = c(x = 1), gamma = c(0, 1)),
+  dgp_parameters = list(beta = c(ASC = 0.5, x = 1), gamma = c(0, 1)),
   chains = 1
 )
 summary(ordered_sim)
@@ -129,7 +129,7 @@ data("survey", package = "MASS")
 levels(survey$Smoke)
 smoking_levels <- c("Never", "Occas", "Regul", "Heavy")
 smoking <- fit(
-  Smoke ~ Age + Exer | 0,
+  Smoke ~ Age + Exer,
   data = survey,
   alternatives = smoking_levels,
   choice_type = "ordered",
@@ -177,7 +177,7 @@ ranked_sim <- fit(
   ),
   chains = 1
 )
-summary(ranked_sim, variables = c("beta[x]", "Sigma[C,B]", "Sigma[C,C]"))
+summary(ranked_sim, variables = c("beta[x]", "Sigma[B,C]", "Sigma[C,C]"))
 
 ## ----ranked-------------------------------------------------------------------
 data("Game", package = "mlogit")

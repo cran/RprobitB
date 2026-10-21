@@ -183,7 +183,7 @@ interpret(model, type = "mea", at = c(price_A = 30, price_B = 10))
 ## ----ordered-prediction-------------------------------------------------------
 data("survey", package = "MASS")
 smoking <- fit(
-  Smoke ~ Age + Exer | 0,
+  Smoke ~ Age + Exer,
   data = survey,
   alternatives = c("Never", "Occas", "Regul", "Heavy"),
   choice_type = "ordered",

@@ -26,6 +26,9 @@ mixing <- fit(
 )
 summary(mixing)
 
+## ----mixing-plot, fig.height = 3----------------------------------------------
+plot(mixing, type = "mixture")
+
 ## ----mixing-interpret---------------------------------------------------------
 interpret(mixing, reference = "price")
 
@@ -63,6 +66,16 @@ summary(electricity)
 ## ----electricity-interpret----------------------------------------------------
 interpret(electricity, effects = c("cl", "loc", "wk"))
 
+## ----electricity-plot, fig.height = 3-----------------------------------------
+plot(electricity, type = "mixture") +
+  ggplot2::geom_vline(xintercept = 0, linetype = "dotted") +
+  ggplot2::labs(x = "willingness to pay in cents per kWh")
+draws <- posterior::as_draws_matrix(electricity)
+longer <- mean(pnorm(
+  0, draws[, "mu[cl]"], sqrt(draws[, "Omega[cl,cl]"]), lower.tail = FALSE
+))
+distant <- mean(pnorm(0, draws[, "mu[loc]"], sqrt(draws[, "Omega[loc,loc]"])))
+
 ## ----classes------------------------------------------------------------------
 mixture <- fit(
   choice ~ x | 0,
@@ -85,6 +98,9 @@ summary(mixture, variables = c(
   "weight[1]", "weight[2]", "mu[x,1]", "mu[x,2]",
   "Omega[x,x,1]", "Omega[x,x,2]"
 ))
+
+## ----classes-plot, fig.height = 3.2-------------------------------------------
+plot(mixture, type = "mixture")
 
 ## ----class-diagnostics--------------------------------------------------------
 class_diagnostics <- latent_class_diagnostics(mixture)
@@ -153,6 +169,15 @@ dynamic <- update(
 summary(dynamic)
 latent_class_diagnostics(dynamic)$occupancy
 recover_classes(dynamic)
+
+## ----refits-plot, fig.height = 3----------------------------------------------
+bayesplot::bayesplot_grid(
+  plot(weight_based, type = "mixture"),
+  plot(sparse, type = "mixture"),
+  plot(dynamic, type = "mixture"),
+  titles = c("weight-based", "sparse", "Dirichlet process"),
+  grid_args = list(nrow = 1)
+)
 
 ## ----ranked-random------------------------------------------------------------
 ranked_random <- fit(

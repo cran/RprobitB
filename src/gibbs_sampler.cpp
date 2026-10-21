@@ -96,7 +96,7 @@
 //' b <- matrix(c(-1, 1), nrow = 1)
 //' Omega <- matrix(c(0.2, 0.2), nrow = 1)
 //'
-//' ### the weights, the allocations, and the class sizes are drawn in turn
+//' ### the weights, the allocations, and the class sizes are updated in turn
 //' s <- update_s(delta = 1, m = c(3, 3))
 //' z <- update_z(s, beta, b, Omega)
 //' m <- update_m(C = 2, z = z)
@@ -421,8 +421,8 @@ static arma::vec update_beta_elliptical(
 //' Update coefficient distributions
 //'
 //' @description
-//' Low-level Gibbs sampler kernels for coefficient means and covariance
-//' matrices.
+//' Low-level Gibbs sampler kernels for coefficients, their class means, and
+//' covariance matrices.
 //'
 //' @param bar_b_c \[`numeric(P)`\]\cr
 //' Average individual coefficient vector in one class.
@@ -462,7 +462,8 @@ static arma::vec update_beta_elliptical(
 //'
 //' @param correlated \[`logical(P)` | `NULL`\]\cr
 //' Which random effects are correlated. Covariances between the other
-//' effects are zero. By default (`NULL`), all random effects are correlated.
+//' effects are zero. In `update_Omega()`, the default (`NULL`) correlates all
+//' random effects.
 //'
 //' @param b \[`matrix(P, C)`\]\cr
 //' Class means in columns.
@@ -895,9 +896,13 @@ static Rcpp::List update_classes_dp_lc(
    // remove an emptied class by moving the last class into its slot
    bool rm = z_n >= 1 && z_n <= C &&
      m_full[static_cast<arma::uword>(z_n - 1)] <= 0.0;
+   arma::vec b_own, Omega_own, lambda_own;
    if (rm) {
      const arma::uword slot = static_cast<arma::uword>(z_n - 1);
      const arma::uword last = static_cast<arma::uword>(C - 1);
+     b_own = b_full.col(slot);
+     Omega_own = Omega_full.col(slot);
+     lambda_own = lambda_full.col(slot);
      if (C > 1) {
        for (int i = 0; i < N; ++i) {
          int zi = static_cast<int>(std::lround(z[i]));
@@ -950,21 +955,28 @@ static Rcpp::List update_classes_dp_lc(
 
    // auxiliary proposals for one possible new class
    for (int auxiliary = 0; auxiliary < auxiliaries; ++auxiliary) {
+     const bool own = rm && auxiliary == 0;
      double loglik = 0.0;
      if (P_r > 0) {
-       b_aux.col(auxiliary) = oeli::rmvnorm(mu_b_0, Sigma_b_0);
-       arma::mat covariance = update_Omega_c(
-         arma::zeros<arma::mat>(P_r, P_r), 0, n_Omega_0,
-         V_Omega_0, correlated
-       );
+       arma::mat covariance;
+       if (own) {
+         b_aux.col(auxiliary) = b_own;
+         covariance = arma::reshape(Omega_own, P_r, P_r);
+       } else {
+         b_aux.col(auxiliary) = oeli::rmvnorm(mu_b_0, Sigma_b_0);
+         covariance = update_Omega_c(
+           arma::zeros<arma::mat>(P_r, P_r), 0, n_Omega_0,
+           V_Omega_0, correlated
+         );
+       }
        Omega_aux.col(auxiliary) = arma::vectorise(covariance);
        loglik += oeli::dmvnorm(
          beta.col(n), b_aux.col(auxiliary), covariance, true
        );
      }
      if (P_l > 0) {
-       lambda_aux.col(auxiliary) =
-         oeli::rmvnorm(mu_lambda_0, Sigma_lambda_0);
+       lambda_aux.col(auxiliary) = own ? lambda_own :
+         arma::vec(oeli::rmvnorm(mu_lambda_0, Sigma_lambda_0));
        loglik += log_likelihood_class(n, lambda_aux.col(auxiliary));
      }
      logp[C + auxiliary] = std::log(delta) - std::log(auxiliaries) + loglik;
@@ -1075,7 +1087,7 @@ Rcpp::List update_classes_dp(
 //' Prior scale matrix for the error covariance.
 //'
 //' @param N \[`integer(1)`\]\cr
-//' Number of independent sampling units.
+//' Number of residual vectors summed in the scatter matrix `S`.
 //'
 //' @param S \[`matrix(J - 1, J - 1)`\]\cr
 //' Error scatter matrix.
@@ -1123,7 +1135,7 @@ Rcpp::List update_classes_dp(
 //' - `d_to_gamma()`: a numeric column matrix containing ordered thresholds
 //'   and their infinite bounds.
 //' - `log_likelihood_ordered()`: one numeric log-likelihood value.
-//' - `update_d()`: a numeric vector of updated log-increments.
+//' - `update_d()`: a `J - 2` by 1 numeric matrix of updated log-increments.
 //'
 //' @references
 //' \insertRef{Robert1995}{RprobitB}
@@ -1531,6 +1543,7 @@ Rcpp::List gibbs_sampler (
   }
   arma::mat d_draws = arma::zeros<arma::mat>(R, J - 2);
   arma::vec class_sequence(R, arma::fill::zeros);
+  arma::vec update_sequence(R, arma::fill::zeros);
   arma::vec delta_draws(R, arma::fill::zeros);
 
   // initialize Gibbs sampler
@@ -1549,27 +1562,26 @@ Rcpp::List gibbs_sampler (
   arma::vec gamma;
   const int rowsU = ordered ? 1 : (J - 1);
   if (P_f > 0) {
-    alpha = mu_alpha_0;
+    alpha = oeli::rmvnorm(mu_alpha_0, Sigma_alpha_0);
   } else {
     alpha.reset();
   }
   if (ordered) {
     Sigma = arma::ones<arma::mat>(1, 1);
     Sigma_inv = arma::ones<arma::mat>(1, 1);
+    d = oeli::rmvnorm(mu_d_0, Sigma_d_0);
+    gamma = d_to_gamma(d);
   } else {
     Sigma = arma::eye(J - 1, J - 1);
     Sigma_inv = arma::eye(J - 1, J - 1);
-  }
-  if (ordered) {
-    d = mu_d_0;
-    gamma = d_to_gamma(d);
-  } else {
     d.reset();
   }
   if (mixture) {
     s = arma::ones<arma::vec>(C) / static_cast<double>(C);
     z.set_size(N);
-    for (int n = 0; n < N; ++n) z[n] = static_cast<double>((n % C) + 1);
+    for (int n = 0; n < N; ++n) {
+      z[n] = static_cast<double>(sample_allocation(s));
+    }
     m = update_m(C, z, false);
   } else {
     s.set_size(0);
@@ -1613,16 +1625,21 @@ Rcpp::List gibbs_sampler (
   if (P_r > 0) {
     arma::mat b_cs(P_cs, C);
     arma::mat Omega_cs(P_cs * P_cs, C);
-    const arma::vec mean_cs = mu_b_0.elem(cs);
-    const arma::mat V_cs = V_Omega_0.submat(cs, cs);
-    for (int c = 0; c < C; ++c) {
-      Omega_cs.col(c) = arma::vectorise(V_cs);
-      if (P_cs > 0) {
-        b_cs.col(c) = C > 1 ? oeli::rmvnorm(mean_cs, V_cs) : mean_cs;
+    if (P_cs > 0) {
+      const arma::vec mean_cs = mu_b_0.elem(cs);
+      const arma::mat Sigma_cs = Sigma_b_0.submat(cs, cs);
+      const arma::mat V_cs = V_Omega_0.submat(cs, cs);
+      for (int c = 0; c < C; ++c) {
+        b_cs.col(c) = oeli::rmvnorm(mean_cs, Sigma_cs);
+        Omega_cs.col(c) = arma::vectorise(V_cs);
       }
     }
-    b_co = mu_b_0.elem(co);
-    Omega_co = V_Omega_0.submat(co, co);
+    if (P_co > 0) {
+      const arma::vec mean_co = mu_b_0.elem(co);
+      const arma::mat Sigma_co = Sigma_b_0.submat(co, co);
+      b_co = oeli::rmvnorm(mean_co, Sigma_co);
+      Omega_co = V_Omega_0.submat(co, co);
+    }
     assemble(b_cs, Omega_cs);
     for (int n = 0; n < N; ++n) {
       int ci = std::max(
@@ -1632,10 +1649,8 @@ Rcpp::List gibbs_sampler (
     }
   }
   if (P_l > 0) {
-    const arma::mat identity = arma::eye(P_l, P_l);
     for (int c = 0; c < C; ++c) {
-      lambda.col(c) =
-        C > 1 ? oeli::rmvnorm(mu_lambda_0, identity) : mu_lambda_0;
+      lambda.col(c) = oeli::rmvnorm(mu_lambda_0, Sigma_lambda_0);
     }
   }
   U = arma::zeros<arma::mat>(rowsU, NT);
@@ -1955,6 +1970,7 @@ Rcpp::List gibbs_sampler (
           Rcpp::as<arma::mat>(update["b"]), Rcpp::as<arma::mat>(update["Omega"])
         );
         C = static_cast<int>(s.n_elem);
+        update_sequence[r] = Rcpp::as<double>(update["update_type"]);
         z = allocate_classes(
           s, log_likelihood_mixture(
             beta.rows(cs), b.rows(cs), block(Omega, cs), lambda,
@@ -2161,6 +2177,7 @@ Rcpp::List gibbs_sampler (
     Rcpp::Named("Sigma") = Sigma_draws,
     Rcpp::Named("d") = d_draws,
     Rcpp::Named("class_sequence") = class_sequence,
+    Rcpp::Named("update_sequence") = update_sequence,
     Rcpp::Named("delta") = delta_draws
   );
   if (save_beta_draws) out["beta"] = beta_draws;

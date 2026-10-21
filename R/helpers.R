@@ -110,6 +110,11 @@ individual_variables <- function(object) {
   variables[startsWith(variables, "individual[")]
 }
 
+progress_amount <- function(index, steps) {
+  every <- max(1L, ceiling(steps / 100))
+  (index %% every == 0L) * every + (index == steps) * (steps %% every)
+}
+
 log_likelihood_draws <- function(object, ghk_draws = 500L, progress = FALSE) {
 
   # input checks
@@ -144,11 +149,15 @@ log_likelihood_draws <- function(object, ghk_draws = 500L, progress = FALSE) {
             aggregate = "decider",
             ghk_draws = ghk_draws
           )
-          progressor(
-            message = paste0(
-              "Log-likelihood of draw ", draw, " of ", length(parameters)
+          amount <- progress_amount(draw, length(parameters))
+          if (amount > 0) {
+            progressor(
+              amount = amount,
+              message = paste0(
+                "Log-likelihood of draw ", draw, " of ", length(parameters)
+              )
             )
-          )
+          }
           value
         },
         future.seed = TRUE
@@ -320,11 +329,11 @@ transform_chain_draws <- function(
     position <- (scale$index - 1L) * (J - 1L) + scale$index
     utility_scale <- sqrt(scale$value / samples$Sigma[, position])
   }
-  if (any(lognormal) && any(!is.finite(utility_scale) | utility_scale <= 0)) {
+  if (any(!is.finite(utility_scale) | utility_scale <= 0)) {
     cli::cli_abort(
       paste(
-        "Log-normal random effects require a positive utility-scale",
-        "normalization."
+        "The coefficient fixed in {.arg scale} must have the sign of its value",
+        "in every draw."
       ),
       call = NULL
     )
@@ -782,9 +791,15 @@ probability_draws <- function(
             aggregate = "occasion",
             ghk_draws = ghk_draws
           )
-          progressor(
-            message = paste0("Conditional probabilities of decider ", decider)
-          )
+          amount <- progress_amount(i, length(prediction_deciders))
+          if (amount > 0) {
+            progressor(
+              amount = amount,
+              message = paste0(
+                "Conditional probabilities of decider ", decider
+              )
+            )
+          }
           probabilities
         },
         future.seed = TRUE

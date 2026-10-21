@@ -24,7 +24,10 @@
 #'
 #' @details
 #' Every statistic describes the marginal posterior of one variable and is
-#' computed from the retained draws of all chains:
+#' computed from the retained draws of all chains. For a class that is empty
+#' in some draws, the column `occupied` gives the share of draws in which it
+#' is occupied, `mcse_*`, `rhat`, and `ess_*` are `NA`, and the other
+#' statistics use only these draws. The statistics are:
 #'
 #' - `mean`: the average of the draws, the usual point estimate.
 #' - `median`: the median value of the draws. If it differs clearly from the
@@ -35,17 +38,18 @@
 #' - `sd`: the standard deviation of the draws, the posterior uncertainty of
 #'   the parameter.
 #' - `q<100 * p>`: the quantile of probability `p`. With
-#'   `probs = c(0.025, 0.975)`, the two columns are the limits of the 95%
-#'   credible interval.
+#'   `probs = c(0.025, 0.975)`, the two columns are the limits of the
+#'   equal-tailed 95% credible interval.
 #' - `mcse_mean`, `mcse_median`, `mcse_sd`: the Monte Carlo standard errors
 #'   of the mean, median, and standard deviation, the sampling error of
 #'   these estimates that more iterations would reduce. Good values are
 #'   below a tenth of `sd`; larger values mean that the reported digits are
 #'   not yet reliable and the sampler should run longer.
-#' - `rhat`: the rank-normalized, folded split-R-hat of Vehtari et al.
-#'   (2021). It compares the variance between the halves of all chains with
+#' - `rhat`: the larger of the rank-normalized split-R-hat and its folded
+#'   version of Vehtari et al. (2021). It compares the variance between
+#'   the halves of all chains with
 #'   the variance within them. With a single chain, it compares the two
-#'   halves of that chain. Good values are at most 1.01; larger values mean
+#'   halves of that chain. Good values are at most 1.01; larger values indicate
 #'   that the chains have not mixed and the sampler should run longer, see
 #'   `plot(type = "trace")`.
 #' - `ess_bulk`: the effective sample size for the center of the posterior,
@@ -53,8 +57,8 @@
 #'   correlated draws. Good values are at least 100 per chain; smaller values
 #'   mean that the sampler should run longer.
 #' - `ess_tail`: the smaller of the effective sample sizes of the 5% and 95%
-#'   quantiles. It governs the precision of quantiles, credible intervals,
-#'   and the standard deviation. The same rule applies: at least 100 per
+#'   quantiles. It governs the precision of extreme quantiles and credible
+#'   intervals. The same rule applies: at least 100 per
 #'   chain is good.
 #'
 #' @references
@@ -164,8 +168,54 @@ summary.RprobitB_fit <- function(
     posterior <- cbind(posterior[1L], occupied = occupied, posterior[-1L])
   }
   if (!is.null(object$simulation)) {
-    dgp <- unname(object$simulation$dgp[variables])
-    posterior <- cbind(posterior[1L], dgp = dgp, posterior[-1L])
+    dgp <- object$simulation$dgp
+    pattern <- "^(weight|mu|Omega|beta)\\[.*[\\[,][0-9]+\\]$"
+    number <- "^.*[\\[,]([0-9]+)\\]$"
+    stem_of <- function(names) sub("[0-9]+\\]$", "", names)
+    specific <- grepl(pattern, names(dgp))
+    estimates <- apply(object$draws, 3L, mean, na.rm = TRUE)
+    estimates <- estimates[grepl(pattern, names(estimates))]
+    class_dgp <- rep(NA_integer_, length(dgp))
+    class_dgp[specific] <- as.integer(sub(number, "\\1", names(dgp)[specific]))
+    class_est <- as.integer(sub(number, "\\1", names(estimates)))
+    classes_dgp <- sort(unique(class_dgp[specific]))
+    classes_est <- sort(unique(class_est))
+    if (length(classes_dgp) > 1L && identical(classes_dgp, classes_est)) {
+      distance <- matrix(0, length(classes_dgp), length(classes_est))
+      for (i in seq_along(classes_dgp)) {
+        for (j in seq_along(classes_est)) {
+          in_dgp <- specific & class_dgp == classes_dgp[i]
+          in_est <- class_est == classes_est[j]
+          stems <- intersect(
+            stem_of(names(dgp)[in_dgp]), stem_of(names(estimates)[in_est])
+          )
+          means <- grepl("^(mu|beta)\\[", stems)
+          if (any(means)) stems <- stems[means]
+          from_dgp <- dgp[in_dgp][match(stems, stem_of(names(dgp)[in_dgp]))]
+          from_est <- estimates[in_est][
+            match(stems, stem_of(names(estimates)[in_est]))
+          ]
+          distance[i, j] <- sum((from_dgp - from_est)^2)
+        }
+      }
+      distance[is.na(distance)] <- Inf
+      matched <- rep(NA_integer_, length(classes_dgp))
+      for (step in seq_along(classes_dgp)) {
+        best <- which(distance == min(distance), arr.ind = TRUE)[1L, ]
+        matched[best[1L]] <- classes_est[best[2L]]
+        distance[best[1L], ] <- Inf
+        distance[, best[2L]] <- Inf
+      }
+      relabeled <- names(dgp)
+      relabeled[specific] <- paste0(
+        stem_of(names(dgp)[specific]),
+        matched[match(class_dgp[specific], classes_dgp)], "]"
+      )
+      names(dgp) <- relabeled
+    }
+    posterior <- cbind(
+      posterior[1L], dgp = unname(dgp[variables]), posterior[-1L]
+    )
   }
 
   # the summary object
@@ -235,13 +285,14 @@ print.summary.RprobitB_fit <- function(x, digits = 3L, ...) {
 #' @return A list with three elements:
 #'
 #' - `occupancy`: a `data.frame` with the columns `n_classes` and
-#'   `probability`. It gives the share of draws in which exactly `n_classes`
-#'   classes contain at least one decider, so it answers how many classes
-#'   the data support. For a fixed mixture, the number of classes is fixed,
-#'   and the table shows how often one of them stays empty.
+#'   `probability`, with one row for every number of classes from one to the
+#'   maximum number of classes of the model. It gives the share of draws in
+#'   which exactly `n_classes` classes contain at least one decider, so it
+#'   indicates how many classes the data support under the chosen prior. For
+#'   a fixed mixture, the sampler keeps all classes occupied.
 #' - `co_clustering`: a square matrix with one row and one column per
 #'   decider. Entry `[i, j]` is the share of draws in which deciders `i` and
-#'   `j` are in the same class, so it answers whether two deciders behave
+#'   `j` are in the same class, so it indicates whether two deciders behave
 #'   alike. It does not depend on how the classes are labeled.
 #' - `membership`: a matrix with one row per decider and one column per
 #'   class, `class_1` to `class_<maximum>`. Entry `[i, k]` is the share of
@@ -307,8 +358,8 @@ latent_class_diagnostics <- function(object) {
   occupied <- colSums(apply(allocation, 1L, tabulate, nbins = classes) > 0L)
   counts <- tabulate(occupied, nbins = classes)
   occupancy <- data.frame(
-    n_classes = which(counts > 0L),
-    probability = counts[counts > 0L] / nrow(allocation)
+    n_classes = seq_len(classes),
+    probability = counts / nrow(allocation)
   )
   list(
     occupancy = occupancy,
@@ -535,7 +586,8 @@ as_draws.RprobitB_fit <- function(x, ...) {
 #'
 #' @description
 #' Creates a standard posterior diagnostic or uncertainty plot with
-#' [**bayesplot**](https://mc-stan.org/bayesplot/).
+#' [**bayesplot**](https://mc-stan.org/bayesplot/), or draws the estimated
+#' mixing distributions of the random effects.
 #'
 #' @param x \[`RprobitB_fit`\]\cr
 #' Fitted choice model.
@@ -552,13 +604,21 @@ as_draws.RprobitB_fit <- function(x, ...) {
 #' - `"density"` overlays the marginal posterior density of each chain.
 #' - `"interval"` draws posterior point estimates with credible intervals.
 #' - `"pairs"` draws bivariate scatter plots of the variables.
+#' - `"mixture"` draws the estimated mixing distribution of every random
+#'   effect, the population density of its coefficient averaged over the
+#'   retained draws. For an effect with latent classes, it is the mixture of
+#'   the class densities. For simulated data, a dashed line adds the mixing
+#'   distribution that generated them.
 #'
 #' @param variables \[`character()` | `NULL`\]\cr
 #' Posterior variables to include. `NULL` includes all varying model
 #' parameters and excludes individual coefficients and latent allocations.
+#' For `type = "mixture"`, the names of random effects as in `mu[<effect>]`,
+#' and `NULL` includes all random effects.
 #'
 #' @param ... Further arguments passed to the selected
-#' [**bayesplot**](https://mc-stan.org/bayesplot/) function.
+#' [**bayesplot**](https://mc-stan.org/bayesplot/) function. Not used for
+#' `type = "mixture"`.
 #'
 #' @return A `ggplot` object or, for a pairs plot, a `bayesplot_grid` object.
 #'
@@ -581,10 +641,18 @@ as_draws.RprobitB_fit <- function(x, ...) {
 #' plot(model, type = "density")
 #' plot(model, type = "interval")
 #' plot(model, type = "pairs")
+#'
+#' ### estimated mixing distribution of a random coefficient
+#' mixed <- fit(
+#'   choice ~ x | 0, random_effects = "x",
+#'   dgp_parameters = list(beta = c(x = 1), Omega = matrix(0.5)),
+#'   chains = 1, n_occasions = 10
+#' )
+#' plot(mixed, type = "mixture")
 
 plot.RprobitB_fit <- function(
   x, y = NULL,
-  type = c("trace", "rank", "acf", "density", "interval", "pairs"),
+  type = c("trace", "rank", "acf", "density", "interval", "pairs", "mixture"),
   variables = NULL, ...
 ) {
   check_fit(x, "x")
@@ -593,10 +661,94 @@ plot.RprobitB_fit <- function(
   oeli::input_check_response(
     checkmate::check_choice(
       type,
-      choices = c("trace", "rank", "acf", "density", "interval", "pairs")
+      choices = c(
+        "trace", "rank", "acf", "density", "interval", "pairs", "mixture"
+      )
     ),
     "type"
   )
+
+  ### estimated mixing distributions of the random effects
+  if (identical(type, "mixture")) {
+    effects <- x$model$effects
+    random <- !is.na(effects$mixing)
+    mixing <- stats::setNames(
+      as.character(effects$mixing[random]), effects$effect_name[random]
+    )
+    if (!length(mixing)) {
+      cli::cli_abort("The model has no random effects.", call = NULL)
+    }
+    if (is.null(variables)) variables <- names(mixing)
+    oeli::input_check_response(
+      checkmate::check_subset(variables, choices = names(mixing)), "variables"
+    )
+    draws <- unclass(posterior::as_draws_matrix(x$draws))
+    dgp <- x$simulation$dgp
+    values <- rbind(draws, dgp[colnames(draws)])
+    origin <- rep(
+      c("estimated", "true"), c(nrow(draws), nrow(values) - nrow(draws))
+    )
+    curves <- do.call(rbind, lapply(variables, function(effect) {
+      classes <- if (sprintf("mu[%s]", effect) %in% colnames(draws)) {
+        ""
+      } else {
+        sprintf(",%d", seq_len(sum(startsWith(colnames(draws), "weight["))))
+      }
+      weight <- if (identical(classes, "")) 1 else {
+        values[, sprintf("weight[%s]", substring(classes, 2L))]
+      }
+      components <- stats::na.omit(data.frame(
+        curve = origin,
+        mu = c(values[, sprintf("mu[%s%s]", effect, classes)]),
+        omega = c(values[, sprintf("Omega[%s,%s%s]", effect, effect, classes)]),
+        weight = c(weight)
+      ))
+      components <- components[
+        !components$curve %in% components$curve[components$omega <= 0],
+      ]
+      estimated <- components[components$curve == "estimated", ]
+      sigma <- sqrt(estimated$omega)
+      z <- seq(
+        min(estimated$mu - 5 * sigma), max(estimated$mu + 5 * sigma),
+        length.out = 500L
+      )
+      cdf <- sapply(
+        z, oeli::pmixnorm_cpp, mean = rbind(estimated$mu),
+        Sigma = rbind(estimated$omega), proportions = estimated$weight
+      )
+      z <- seq(
+        z[which.max(cdf >= 0.001)], z[which.max(cdf >= 0.999)],
+        length.out = 200L
+      )
+      shape <- sub("^c", "", mixing[[effect]])
+      value <- switch(shape, "n" = z, "ln" = exp(z), "ln-" = -exp(z))
+      scale <- if (identical(shape, "n")) 1 else exp(z)
+      density <- sapply(split(components, components$curve), function(part) {
+        sapply(
+          z, oeli::dmixnorm_cpp, mean = rbind(part$mu),
+          Sigma = rbind(part$omega), proportions = part$weight
+        ) / scale
+      })
+      data.frame(
+        effect = effect, value = value,
+        curve = rep(colnames(density), each = length(z)),
+        density = c(density)
+      )
+    }))
+    curves$effect <- factor(curves$effect, levels = variables)
+    curves$curve <- factor(curves$curve, levels = c("estimated", "true"))
+    value <- density <- curve <- effect <- NULL
+    plot <- ggplot2::ggplot(
+      curves, ggplot2::aes(x = value, y = density, linetype = curve)
+    ) +
+      ggplot2::geom_line() +
+      ggplot2::facet_wrap(ggplot2::vars(effect), scales = "free") +
+      ggplot2::labs(x = "coefficient", y = "density", linetype = NULL) +
+      bayesplot::bayesplot_theme_get()
+    legend <- if (all(curves$curve == "estimated")) "none" else "bottom"
+    return(plot + ggplot2::theme(legend.position = legend))
+  }
+
   available <- dimnames(x$draws)$variable
   if (is.null(variables)) {
     variables <- posterior_variables(x)
